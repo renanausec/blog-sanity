@@ -46,6 +46,7 @@ export interface FaqItem {
 }
 
 export interface Seo {
+  focusKeyword?: string
   metaTitle?: string
   metaDescription?: string
   canonical?: string
@@ -68,8 +69,17 @@ export interface Category {
   title: Localized
   slug: Localized<{ current: string }>
   description?: Localized
+  body?: Localized<PortableTextValue>
   order?: number
   noIndex?: boolean
+}
+
+export interface Source {
+  _key: string
+  title: string
+  url: string
+  publisher?: string
+  date?: string
 }
 
 export interface Author {
@@ -112,6 +122,11 @@ export interface EditorialDoc extends BaseDoc {
   updatedAt?: string
   body?: PortableTextValue
   related?: CardItem[]
+  keyTakeaways?: string[]
+  sources?: Source[]
+  reviewedBy?: Author
+  /** Im Text erwähnte Glossarbegriffe (Schlüssel "lang:slug"), beim Laden berechnet */
+  mentions?: string[]
 }
 
 export interface ComparisonItem {
@@ -124,6 +139,8 @@ export interface ComparisonItem {
   cons?: string[]
   rating?: number
   url?: string
+  bestFor?: string
+  priceFrom?: number
   review?: LinkRef | null
 }
 
@@ -147,7 +164,17 @@ export interface Comparison extends EditorialDoc {
 
 export interface Review extends EditorialDoc {
   _type: 'review'
-  product: { name: string; brand: string; image?: SanityImage; url?: string; priceFrom?: number }
+  product: {
+    name: string
+    brand: string
+    image?: SanityImage
+    url?: string
+    priceFrom?: number
+    freePlan?: string
+    productType?: 'software' | 'product'
+    applicationCategory?: string
+    operatingSystem?: string
+  }
   rating: number
   pros: string[]
   cons: string[]
@@ -157,9 +184,13 @@ export interface Review extends EditorialDoc {
 export interface GlossaryTerm extends BaseDoc {
   _type: 'glossaryTerm'
   shortDefinition: string
+  alternateNames?: string[]
+  sameAs?: string[]
+  category?: Category
   body?: PortableTextValue
   relatedTerms?: LinkRef[]
   updatedAt?: string
+  mentions?: string[]
 }
 
 export type LandingSection =
@@ -174,8 +205,11 @@ export interface LandingPage extends BaseDoc {
   sections: LandingSection[]
 }
 
+export type PageType = 'generic' | 'about' | 'contact' | 'editorialPolicy' | 'imprint' | 'privacy'
+
 export interface Page extends BaseDoc {
   _type: 'page'
+  pageType?: PageType
   intro?: string
   body: PortableTextValue
   updatedAt?: string
@@ -216,6 +250,9 @@ export interface SiteSettings {
   }>
   organization?: {
     legalName?: string
+    description?: Localized
+    knowsAbout?: string[]
+    foundingDate?: string
     email?: string
     streetAddress?: string
     postalCode?: string

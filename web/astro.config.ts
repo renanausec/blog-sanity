@@ -3,12 +3,15 @@ import sanity from '@sanity/astro'
 import { fileURLToPath } from 'node:url'
 import { existsSync } from 'node:fs'
 import { siteConfig } from '../site.config'
+import { resolveSiteUrl } from '../shared/routing'
 
 // Lokale Umgebungsvariablen aus der .env im Projektstamm laden (in Cloudflare kommen sie aus den Settings)
 const rootEnv = fileURLToPath(new URL('../.env', import.meta.url))
 if (existsSync(rootEnv)) process.loadEnvFile(rootEnv)
 
-const site = process.env.SITE_URL ?? siteConfig.url
+const site = resolveSiteUrl(process.env.SITE_URL)
+// Theme aus site.config.ts; SITE_THEME überschreibt es (z. B. zum Testen eines anderen Themes)
+const theme = process.env.SITE_THEME ?? siteConfig.theme
 
 export default defineConfig({
   site,
@@ -40,7 +43,7 @@ export default defineConfig({
     resolve: {
       alias: {
         // Aktives Theme – Umschalten in site.config.ts → theme
-        '@theme': fileURLToPath(new URL(`./src/themes/${siteConfig.theme}`, import.meta.url)),
+        '@theme': fileURLToPath(new URL(`./src/themes/${theme}`, import.meta.url)),
       },
     },
   },

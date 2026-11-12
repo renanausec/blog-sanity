@@ -35,7 +35,13 @@ const s = t(lang)
                 {typeof item.rating === 'number' && <Rating value={item.rating} lang={lang} />}
               </div>
             </div>
+            {item.bestFor && (
+              <p class="ranking__bestfor">
+                <strong>{s.bestFor}:</strong> {item.bestFor}
+              </p>
+            )}
             <p>{item.summary}</p>
+            {typeof item.priceFrom === 'number' && <p class="meta">{s.priceFrom(item.priceFrom)}</p>}
             {((item.pros?.length ?? 0) > 0 || (item.cons?.length ?? 0) > 0) && (
               <ProsCons pros={item.pros} cons={item.cons} headingLevel={4} />
             )}
@@ -103,6 +109,11 @@ const s = t(lang)
   .ranking__item :global(.ranking__logo) {
     width: 64px;
     height: auto;
+  }
+  .ranking__bestfor {
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-accent-soft);
+    border-radius: var(--radius-sm);
   }
   .ranking__links {
     display: flex;

@@ -31,6 +31,9 @@ export type RouteData =
   | { kind: 'category'; category: Category; list: ListData }
   | { kind: 'author'; author: Author; list: ListData }
   | { kind: 'glossaryIndex'; terms: GlossaryTerm[] }
+  | { kind: 'hub'; hub: 'comparison' | 'review'; list: ListData }
+  | { kind: 'authorIndex'; authors: Author[] }
+  | { kind: 'categoryIndex'; categories: Category[] }
   | { kind: 'doc'; doc: ContentDoc }
 
 export interface Route {
@@ -54,6 +57,8 @@ const defaults: Record<string, { priority: number; changefreq: string }> = {
   glossaryIndex: { priority: 0.6, changefreq: 'weekly' },
   glossaryTerm: { priority: 0.6, changefreq: 'monthly' },
   category: { priority: 0.6, changefreq: 'daily' },
+  hub: { priority: 0.6, changefreq: 'weekly' },
+  index: { priority: 0.4, changefreq: 'monthly' },
   author: { priority: 0.4, changefreq: 'monthly' },
   landingPage: { priority: 0.7, changefreq: 'monthly' },
   page: { priority: 0.3, changefreq: 'yearly' },
@@ -144,6 +149,50 @@ function buildRoutes(content: Content): Route[] {
         })
       }
     }
+
+    // Hubs: alle Vergleiche / alle Tests
+    for (const hub of ['comparison', 'review'] as const) {
+      const items = cards.filter((c) => c._type === hub)
+      const indexType = hub === 'comparison' ? 'comparisonIndex' : 'reviewIndex'
+      for (const { path, list } of paginate(items, docPath(indexType, lang), lang)) {
+        routes.push({
+          path,
+          lang,
+          data: { kind: 'hub', hub, list },
+          noIndex: items.length === 0,
+          candidates: Object.fromEntries(localeIds.map((l) => [l, paginatedPath(docPath(indexType, l), l, list.page)])),
+          alternates: {},
+          lastmod: list.page === 1 ? items[0]?.publishedAt : undefined,
+          sitemap: list.page === 1 ? defaults.hub : undefined,
+        })
+      }
+    }
+
+    // Übersicht Redaktion (Autoren mit Beiträgen in dieser Sprache)
+    const activeAuthors = content.authors.filter((a) => editorial.some((d) => d.authors.some((x) => x._id === a._id)))
+    routes.push({
+      path: docPath('authorIndex', lang),
+      lang,
+      data: { kind: 'authorIndex', authors: activeAuthors },
+      noIndex: activeAuthors.length === 0,
+      candidates: Object.fromEntries(localeIds.map((l) => [l, docPath('authorIndex', l)])),
+      alternates: {},
+      sitemap: defaults.index,
+    })
+
+    // Übersicht Themen (Kategorien)
+    const activeCategories = content.categories.filter(
+      (c) => !c.noIndex && pick(c.slug, lang)?.current && cards.some((x) => x.category?._id === c._id),
+    )
+    routes.push({
+      path: docPath('categoryIndex', lang),
+      lang,
+      data: { kind: 'categoryIndex', categories: activeCategories },
+      noIndex: activeCategories.length === 0,
+      candidates: Object.fromEntries(localeIds.map((l) => [l, docPath('categoryIndex', l)])),
+      alternates: {},
+      sitemap: defaults.index,
+    })
 
     // Glossar-Index
     const terms = content.glossary.filter((g) => g.language === lang && !g.seo?.noIndex)

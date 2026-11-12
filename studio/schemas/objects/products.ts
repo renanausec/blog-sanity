@@ -27,6 +27,19 @@ export const comparisonItem = defineType({
   fields: [
     defineField({ name: 'name', title: 'Name', type: 'string', validation: (rule) => rule.required() }),
     defineField({ name: 'badge', title: 'Auszeichnung', type: 'string', description: 'z. B. „Testsieger“, „Preis-Tipp“' }),
+    defineField({
+      name: 'bestFor',
+      title: 'Ideal für',
+      type: 'string',
+      description: 'Kurz und konkret, für wen sich der Eintrag eignet (z. B. „Teams bis 20 Personen mit Fokus Vertrieb“). Wird hervorgehoben – stark für KI-Antworten („bestes X für Y“).',
+    }),
+    defineField({
+      name: 'priceFrom',
+      title: 'Preis ab (EUR / Monat)',
+      type: 'number',
+      description: 'Optional. 0 = kostenloser Plan.',
+      validation: (rule) => rule.min(0),
+    }),
     defineField({ name: 'image', title: 'Bild / Logo', type: 'figure' }),
     defineField({
       name: 'summary',
@@ -76,7 +89,53 @@ export const product = defineType({
   fields: [
     defineField({ name: 'name', title: 'Produktname', type: 'string', validation: (rule) => rule.required() }),
     defineField({ name: 'brand', title: 'Hersteller / Marke', type: 'string', validation: (rule) => rule.required() }),
+    defineField({
+      name: 'productType',
+      title: 'Art des Produkts',
+      type: 'string',
+      description: 'Software → schema.org SoftwareApplication (empfohlen für Tools/SaaS), sonst Product.',
+      options: {
+        list: [
+          { title: 'Software / SaaS', value: 'software' },
+          { title: 'Sonstiges Produkt', value: 'product' },
+        ],
+        layout: 'radio',
+        direction: 'horizontal',
+      },
+      initialValue: 'software',
+    }),
+    defineField({
+      name: 'applicationCategory',
+      title: 'Software-Kategorie',
+      type: 'string',
+      hidden: ({ parent }) => parent?.productType === 'product',
+      options: {
+        list: [
+          { title: 'Business (ERP, CRM …)', value: 'BusinessApplication' },
+          { title: 'Finanzen / Buchhaltung', value: 'FinanceApplication' },
+          { title: 'Sicherheit', value: 'SecurityApplication' },
+          { title: 'Kommunikation', value: 'CommunicationApplication' },
+          { title: 'Entwicklung', value: 'DeveloperApplication' },
+          { title: 'Design / Medien', value: 'DesignApplication' },
+          { title: 'Sonstige', value: 'UtilitiesApplication' },
+        ],
+      },
+      initialValue: 'BusinessApplication',
+    }),
+    defineField({
+      name: 'operatingSystem',
+      title: 'Plattformen',
+      type: 'string',
+      description: 'z. B. „Web, Windows, macOS, iOS, Android“',
+      hidden: ({ parent }) => parent?.productType === 'product',
+    }),
     defineField({ name: 'image', title: 'Produktbild / Logo', type: 'figure' }),
+    defineField({
+      name: 'freePlan',
+      title: 'Kostenlose Version / Testphase',
+      type: 'string',
+      description: 'z. B. „Free-Plan bis 2 Nutzer“, „14 Tage kostenlos testen“. Leer = keine Angabe.',
+    }),
     defineField({
       name: 'url',
       title: 'Offizielle Website',
@@ -87,7 +146,7 @@ export const product = defineType({
       name: 'priceFrom',
       title: 'Preis ab (EUR / Monat)',
       type: 'number',
-      description: 'Optional. 0 = kostenloser Plan verfügbar.',
+      description: 'Günstigster regulärer Monatspreis (netto, EUR). 0 = kostenloser Plan. Wird als offers im Schema ausgegeben.',
       validation: (rule) => rule.min(0),
     }),
   ],

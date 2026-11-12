@@ -5,12 +5,14 @@ import Listing from '@theme/Listing.astro'
 import Breadcrumbs from '../components/ui/Breadcrumbs.astro'
 import Pagination from '../components/ui/Pagination.astro'
 import AuthorBox from '../components/ui/AuthorBox.astro'
+import TermChips from '../components/ui/TermChips.astro'
+import RichText from '../components/content/RichText.astro'
 import { siteConfig } from '../../../site.config'
-import { docPath } from '../../../shared/routing'
+import { absoluteUrl, docPath } from '../../../shared/routing'
 import { loadContent } from '../lib/content'
-import { categoryPath, pick, t } from '../lib/i18n'
+import { categoryPath, pick, refHref, t } from '../lib/i18n'
 import { absoluteImage } from '../lib/images'
-import { breadcrumbNode, personNode, webPageNode, type Crumb } from '../lib/jsonld'
+import { breadcrumbNode, categoryThing, ids, linkListNode, personNode, webPageNode, type Crumb } from '../lib/jsonld'
 import type { Route } from '../lib/routes'
 
 interface Props {
@@ -18,9 +20,11 @@ interface Props {
 }
 const { route } = Astro.props
 const { lang, data } = route
-if (data.kind !== 'home' && data.kind !== 'category' && data.kind !== 'author') throw new Error('ListView: falscher Typ')
+if (data.kind !== 'home' && data.kind !== 'category' && data.kind !== 'author' && data.kind !== 'hub')
+  throw new Error('ListView: falscher Typ')
 
-const { settings } = await loadContent()
+const content = await loadContent()
+const { settings } = content
 const s = t(lang)
 const siteName = settings.siteName || siteConfig.name
 const { list } = data
@@ -42,14 +46,30 @@ if (data.kind === 'home') {
   title = `${heading}${pageSuffix}`
   description = pick(data.category.description, lang)
   crumbs = [home, { name: heading, path: categoryPath(data.category, lang) }]
+} else if (data.kind === 'hub') {
+  heading = data.hub === 'comparison' ? s.comparisons : s.reviews
+  title = `${heading}${pageSuffix}`
+  description = data.hub === 'comparison' ? s.comparisonsIntro : s.reviewsIntro
+  crumbs = [home, { name: heading, path: list.basePath }]
 } else {
   heading = data.author.name
   title = `${s.articlesBy(heading)}${pageSuffix}`
   description = pick(data.author.bio, lang)
-  crumbs = [home, { name: heading, path: docPath('author', lang, data.author.slug) }]
+  crumbs = [home, { name: s.authors, path: docPath('authorIndex', lang) }, { name: heading, path: docPath('author', lang, data.author.slug) }]
   const img = await absoluteImage(data.author.image, 400, 1)
   extraNodes.push(personNode(data.author, lang, img?.url))
 }
+
+// Interne Verlinkung: Glossarbegriffe (Startseite: neueste; Kategorie: Begriffe dieser Kategorie)
+const terms = content.glossary.filter((g) => g.language === lang && !g.seo?.noIndex)
+const chipTerms =
+  data.kind === 'category'
+    ? terms.filter((g) => g.category?._id === data.category._id)
+    : data.kind === 'home' && list.page === 1
+      ? [...terms].sort((a, b) => (b.updatedAt ?? b._updatedAt).localeCompare(a.updatedAt ?? a._updatedAt)).slice(0, 12)
+      : []
+const hubBody = data.kind === 'category' && list.page === 1 ? data.category.body?.[lang] : undefined
+const policyHref = refHref(settings.legalPages?.[lang]?.editorialPolicy, lang)
 
 const jsonLd = [
   webPageNode({
@@ -57,9 +77,20 @@ const jsonLd = [
     lang,
     title,
     description,
-    type: data.kind === 'author' ? 'ProfilePage' : data.kind === 'category' ? 'CollectionPage' : 'WebPage',
+    type: data.kind === 'author' ? 'ProfilePage' : data.kind === 'home' ? 'WebPage' : 'CollectionPage',
     hasBreadcrumb: crumbs.length > 0,
+    about: data.kind === 'category' ? categoryThing(data.category, lang) : undefined,
+    mainEntity:
+      data.kind === 'author'
+        ? { '@id': ids.person(data.author) }
+        : list.items.length
+          ? { '@id': `${absoluteUrl(route.path)}#itemlist` }
+          : undefined,
   }),
+  linkListNode(
+    route.path,
+    list.items.map((i) => ({ name: i.title, path: docPath(i._type, i.language, i.slug) })),
+  ),
   crumbs.length ? breadcrumbNode(route.path, crumbs) : undefined,
   ...extraNodes,
 ]
@@ -76,12 +107,14 @@ const jsonLd = [
         <header class="list-page__header">
           {data.kind === 'category' && <p class="kicker">{s.category}</p>}
           <h1>{heading}</h1>
-          {description && data.kind === 'category' && <p class="list-page__intro">{description}</p>}
+          {description && (data.kind === 'category' || data.kind === 'hub') && (
+            <p class="list-page__intro">{description}</p>
+          )}
         </header>
       )
     }
 
-    {data.kind === 'author' && list.page === 1 && <AuthorBox authors={[data.author]} lang={lang} />}
+    {data.kind === 'author' && list.page === 1 && <AuthorBox authors={[data.author]} lang={lang} policyHref={policyHref} />}
 
     {
       list.items.length > 0 ? (
@@ -92,6 +125,9 @@ const jsonLd = [
     }
 
     <Pagination list={list} lang={lang} />
+
+    {chipTerms.length > 0 && <TermChips terms={chipTerms} lang={lang} title={data.kind === 'category' ? s.termsInCategory : undefined} />}
+    {hubBody?.length ? <RichText value={hubBody} class="list-page__body" /> : null}
   </div>
 </BaseLayout>
 

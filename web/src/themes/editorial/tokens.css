@@ -1,0 +1,158 @@
+/*
+ * Theme „editorial“ – ruhiges Magazin: Serifen-Überschriften, warme Töne,
+ * runde Formen, viel Weißraum, zentrierte Lesespalte.
+ */
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('./fonts/fraunces-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('./fonts/fraunces-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url('./fonts/source-sans-3-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url('./fonts/source-sans-3-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url('./fonts/source-sans-3-latin-wght-italic.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fraunces Fallback';
+  src: local('Georgia');
+  size-adjust: 104%;
+  ascent-override: 94%;
+  descent-override: 24%;
+}
+@font-face {
+  font-family: 'Source Sans Fallback';
+  src: local('Arial');
+  size-adjust: 92%;
+  ascent-override: 102%;
+  descent-override: 28%;
+}
+
+:root {
+  /* Farben – warmes Papier, Terrakotta */
+  --color-bg: #fbf7f1;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f3ece2;
+  --color-text: #2b2420;
+  --color-heading: #1f1915;
+  --color-text-muted: #665a51;
+  --color-border: #e6dccf;
+  --color-border-strong: #cbbcaa;
+  --color-primary: #a0442a;
+  --color-primary-strong: #7d321e;
+  --color-on-primary: #ffffff;
+  --color-accent-soft: #f6e6dc;
+  --color-link: #8f3a22;
+  --color-link-hover: #5f2414;
+  --color-kicker: #8f3a22;
+  --color-focus: #c2571a;
+  --color-rating: #c98a00;
+  --color-topbar: #fbf7f1;
+  --color-topbar-text: #2b2420;
+  --color-short-answer-bg: #ffffff;
+  --color-cta-bg: #f6e6dc;
+  --color-cta-text: #2b2420;
+  --color-cta-button-bg: #a0442a;
+  --color-cta-button-text: #ffffff;
+  --color-footer-bg: #f3ece2;
+  --color-footer-text: #4f453d;
+  --color-footer-heading: #1f1915;
+  --color-info: #2f6690;
+  --color-info-bg: #edf3f7;
+  --color-success: #3b7d4f;
+  --color-success-bg: #eef5ef;
+  --color-warning: #9a5b00;
+  --color-warning-bg: #fbf1e1;
+  --color-danger: #a8322a;
+
+  /* Typografie */
+  --font-heading: 'Fraunces', 'Fraunces Fallback', Georgia, serif;
+  --font-body: 'Source Sans 3', 'Source Sans Fallback', system-ui, sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
+  --weight-heading: 600;
+  --weight-bold: 650;
+  --weight-lead: 400;
+  --heading-letter-spacing: -0.01em;
+  --kicker-transform: none;
+  --kicker-letter-spacing: 0.01em;
+  --button-transform: none;
+  --button-letter-spacing: 0;
+
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.0625rem;
+  --text-prose: 1.1875rem;
+  --text-lead: 1.25rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.35rem, 1.2rem + 0.6vw, 1.6rem);
+  --text-2xl: clamp(1.6rem, 1.35rem + 1vw, 2rem);
+  --text-3xl: clamp(1.9rem, 1.5rem + 1.6vw, 2.6rem);
+  --text-4xl: clamp(2.2rem, 1.6rem + 2.6vw, 3.4rem);
+  --leading-tight: 1.15;
+  --leading-body: 1.7;
+
+  /* Abstände – großzügiger */
+  --space-1: 0.3rem;
+  --space-2: 0.6rem;
+  --space-3: 0.9rem;
+  --space-4: 1.2rem;
+  --space-5: 1.75rem;
+  --space-6: 2.4rem;
+  --space-7: 3rem;
+  --space-8: 3.75rem;
+  --space-section: clamp(3rem, 2.4rem + 3vw, 5.5rem);
+  --gutter: 1.25rem;
+
+  /* Formen – rund und weich */
+  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-button: 999px;
+  --border-width: 1px;
+  --shadow-card: 0 1px 2px rgb(60 40 20 / 0.06), 0 8px 24px rgb(60 40 20 / 0.06);
+
+  /* Breiten – schmalere Lesespalte */
+  --container: 68rem;
+  --measure: 40rem;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: 2rem;
+  }
+}

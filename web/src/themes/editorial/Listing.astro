@@ -1,0 +1,49 @@
+---
+/**
+ * Editorial-Liste. Startseite: großer Aufmacher + 2er-Kacheln. Archiv: einspaltige Querkarten.
+ */
+import Card from './Card.astro'
+import { t } from '../../lib/i18n'
+import type { ListingProps } from '../types'
+
+type Props = ListingProps
+const { items, lang, variant } = Astro.props
+const s = t(lang)
+const isHome = variant === 'home' && items.length > 1
+const lead = isHome ? items[0] : undefined
+const rest = isHome ? items.slice(1) : items
+---
+
+{lead && <Card item={lead} variant="lead" headingLevel={2} priority />}
+
+{
+  rest.length > 0 && (
+    <section aria-label={isHome ? s.latest : undefined}>
+      {isHome && <h2 class="section-title">{s.latest}</h2>}
+      <div class:list={[isHome ? 'tiles' : 'rows']}>
+        {rest.map((item, i) => (
+          <Card item={item} variant={isHome ? 'default' : 'compact'} headingLevel={isHome ? 3 : 2} priority={!isHome && i < 2} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .section-title {
+    text-align: center;
+    font-style: italic;
+    margin-block: var(--space-7) var(--space-5);
+  }
+  .tiles {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  }
+  .rows {
+    display: grid;
+    gap: var(--space-5);
+    max-width: 52rem;
+    margin-inline: auto;
+  }
+</style>

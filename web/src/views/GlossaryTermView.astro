@@ -5,9 +5,11 @@ import Breadcrumbs from '../components/ui/Breadcrumbs.astro'
 import ShortAnswer from '../components/ui/ShortAnswer.astro'
 import Faq from '../components/ui/Faq.astro'
 import RichText from '../components/content/RichText.astro'
+import Related from '../components/ui/Related.astro'
 import { docPath } from '../../../shared/routing'
-import { refHref, t } from '../lib/i18n'
-import { breadcrumbNode, definedTermNode, faqNode, webPageNode, type Crumb } from '../lib/jsonld'
+import { loadContent, mentionedIn } from '../lib/content'
+import { categoryPath, pick, refHref, t } from '../lib/i18n'
+import { breadcrumbNode, definedTermNode, faqNode, ids, webPageNode, type Crumb } from '../lib/jsonld'
 import type { Route } from '../lib/routes'
 import type { GlossaryTerm } from '../lib/types'
 
@@ -24,7 +26,10 @@ const crumbs: Crumb[] = [
   { name: s.glossary, path: indexPath },
   { name: term.title, path: route.path },
 ]
-const definitionLabel = lang === 'de' ? `Was ist ${term.title}?` : `What is ${term.title}?`
+const definitionLabel = s.whatIs(term.title)
+const content = await loadContent()
+const usedIn = mentionedIn(content, term, 6)
+const categoryName = term.category ? pick(term.category.title, lang) : undefined
 const jsonLd = [
   webPageNode({
     path: route.path,
@@ -33,6 +38,8 @@ const jsonLd = [
     description: term.shortDefinition,
     dateModified: term.updatedAt ?? term._updatedAt,
     hasBreadcrumb: true,
+    speakable: ['h1', '.short-answer'],
+    mainEntity: { '@id': ids.term(lang, term.slug) },
   }),
   breadcrumbNode(route.path, crumbs),
   definedTermNode(term),
@@ -47,6 +54,22 @@ const related = (term.relatedTerms ?? [])
   <ArticleLayout lang={lang} title={term.title} kicker={{ label: s.glossary, href: indexPath }}>
     <Breadcrumbs slot="breadcrumbs" crumbs={crumbs} lang={lang} />
     <ShortAnswer slot="lead" text={term.shortDefinition} lang={lang} label={definitionLabel} />
+    {
+      ((term.alternateNames?.length ?? 0) > 0 || (term.category && categoryName)) && (
+        <p slot="meta" class="meta term-meta">
+          {(term.alternateNames?.length ?? 0) > 0 && (
+            <span>
+              {s.alsoKnownAs}: {term.alternateNames!.join(', ')}
+            </span>
+          )}
+          {term.category && categoryName && (
+            <span>
+              {s.category}: <a href={categoryPath(term.category, lang)}>{categoryName}</a>
+            </span>
+          )}
+        </p>
+      )
+    }
 
     <RichText value={term.body} />
 
@@ -67,10 +90,17 @@ const related = (term.relatedTerms ?? [])
     }
 
     <Faq items={term.faq} lang={lang} />
+
+    <Related slot="after" items={usedIn} lang={lang} title={s.mentionedIn} />
   </ArticleLayout>
 </BaseLayout>
 
 <style>
+  .term-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+  }
   .related-terms h2 {
     margin-bottom: var(--space-3);
   }

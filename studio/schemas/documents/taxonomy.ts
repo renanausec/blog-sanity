@@ -38,9 +38,14 @@ export const author = defineType({
       name: 'jobTitle',
       title: 'Fachgebiet / Position',
       type: 'localeString',
-      description: 'z. B. „ERP-Beraterin“, „Redakteur für KI“. Wird als jobTitle/knowsAbout genutzt.',
+      description: 'z. B. „ERP-Beraterin“, „Redakteur für KI“. Wird als jobTitle ausgegeben.',
     }),
-    defineField({ name: 'bio', title: 'Kurzbiografie', type: 'localeText' }),
+    defineField({
+      name: 'bio',
+      title: 'Kurzbiografie',
+      type: 'localeText',
+      description: '2–3 Sätze in der 3. Person: Erfahrung, Schwerpunkte, Qualifikation (E-E-A-T). Keine erfundenen Angaben.',
+    }),
     defineField({
       name: 'expertise',
       title: 'Themenschwerpunkte',
@@ -89,7 +94,15 @@ export const category = defineType({
       name: 'description',
       title: 'Beschreibung',
       type: 'localeText',
-      description: 'Erscheint oben auf der Kategorieseite und als Meta-Description.',
+      description:
+        'Je Sprache 1–2 Sätze: was die Kategorie umfasst, für wen. Erscheint oben auf der Kategorieseite und als Meta-Description (120–160 Zeichen ideal).',
+    }),
+    defineField({
+      name: 'body',
+      title: 'Hub-Text',
+      type: 'localeRichText',
+      description:
+        'Optional: ausführlicher Einstiegstext unter der Artikelliste (Grundlagen, Auswahlkriterien, Links auf wichtige Artikel und Glossarbegriffe). Macht die Kategorieseite zur Themen-Übersicht.',
     }),
     defineField({
       name: 'order',

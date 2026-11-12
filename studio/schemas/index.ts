@@ -3,7 +3,7 @@ import { glossaryTerm, landingPage, page } from './documents/pages'
 import { author, category } from './documents/taxonomy'
 import { siteSettings } from './documents/siteSettings'
 import { seo } from './objects/seo'
-import { localeSlug, localeString, localeText } from './objects/localized'
+import { localeRichText, localeSlug, localeString, localeText } from './objects/localized'
 import { callout, cta, faqItem, figure, linkTarget, prosCons, richText, simpleText, table } from './objects/content'
 import { benefitsSection, ctaSection, faqSection, heroSection, textSection } from './objects/sections'
 import { comparisonItem, product } from './objects/products'
@@ -30,6 +30,7 @@ export const schemaTypes = [
   localeString,
   localeText,
   localeSlug,
+  localeRichText,
   figure,
   simpleText,
   richText,

@@ -26,12 +26,23 @@ export const glossaryTerm = defineType({
     }),
     { ...slugField('title', ['glossaryTerm']), group: 'content' },
     defineField({
+      name: 'alternateNames',
+      title: 'Langform & Synonyme',
+      type: 'array',
+      group: 'content',
+      of: [{ type: 'string' }],
+      options: { layout: 'tags' },
+      description:
+        'Ausgeschriebene Form, Synonyme, gängige Schreibweisen (z. B. bei „ERP“: „Enterprise Resource Planning“, „ERP-System“). Werden als alternateName ausgegeben und im Fließtext anderer Seiten automatisch verlinkt.',
+    }),
+    defineField({
       name: 'shortDefinition',
       title: 'Kurzdefinition',
       type: 'text',
       rows: 3,
       group: 'content',
-      description: 'Direkte Antwort auf „Was ist …?“ in 1–2 Sätzen. Erscheint im Index und als DefinedTerm-Beschreibung.',
+      description:
+        'Direkte Antwort auf „Was ist …?“ in 1–2 Sätzen, Muster: „<Begriff> (<Langform>) ist/bezeichnet …“. Für sich allein verständlich. Erscheint im Index, als Tooltip bei Verlinkungen und als DefinedTerm-Beschreibung.',
       validation: (rule) => [rule.required(), rule.max(300).warning('Kurzdefinition bitte unter 300 Zeichen halten.')],
     }),
     defineField({
@@ -47,6 +58,24 @@ export const glossaryTerm = defineType({
       group: 'meta',
       of: [defineArrayMember({ type: 'reference', to: [{ type: 'glossaryTerm' }], options: { filter: sameLanguageFilter } })],
       validation: (rule) => rule.unique().max(8),
+    }),
+    defineField({
+      name: 'category',
+      title: 'Kategorie',
+      type: 'reference',
+      group: 'meta',
+      to: [{ type: 'category' }],
+      description: 'Optional. Der Begriff erscheint dann auf der Kategorieseite unter „Begriffe zum Thema“.',
+    }),
+    defineField({
+      name: 'sameAs',
+      title: 'Referenzen (sameAs)',
+      type: 'array',
+      group: 'meta',
+      of: [{ type: 'url' }],
+      description:
+        'Eindeutige Referenzen zum Begriff, z. B. Wikipedia- und Wikidata-URL. Hilft Suchmaschinen und KI, den Begriff korrekt zuzuordnen (Entität).',
+      validation: (rule) => rule.max(5),
     }),
     defineField({
       name: 'updatedAt',
@@ -124,6 +153,24 @@ export const page = defineType({
       validation: (rule) => rule.required(),
     }),
     { ...slugField('title', rootSlugTypes), group: 'content' },
+    defineField({
+      name: 'pageType',
+      title: 'Seitentyp',
+      type: 'string',
+      group: 'content',
+      description: 'Steuert das schema.org-Markup (AboutPage, ContactPage) und Verknüpfungen (publishingPrinciples).',
+      options: {
+        list: [
+          { title: 'Allgemein', value: 'generic' },
+          { title: 'Über uns', value: 'about' },
+          { title: 'Kontakt', value: 'contact' },
+          { title: 'Redaktionelle Richtlinien', value: 'editorialPolicy' },
+          { title: 'Impressum', value: 'imprint' },
+          { title: 'Datenschutz', value: 'privacy' },
+        ],
+      },
+      initialValue: 'generic',
+    }),
     defineField({
       name: 'intro',
       title: 'Einleitung',

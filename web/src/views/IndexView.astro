@@ -1,0 +1,156 @@
+---
+/** Übersichtsseiten: Redaktion (alle Autor:innen) und Themen (alle Kategorien) */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Breadcrumbs from '../components/ui/Breadcrumbs.astro'
+import SanityImage from '../components/ui/SanityImage.astro'
+import { absoluteUrl, docPath } from '../../../shared/routing'
+import { editorialFor, loadContent } from '../lib/content'
+import { categoryPath, pick, refHref, t } from '../lib/i18n'
+import { absoluteImage } from '../lib/images'
+import { breadcrumbNode, linkListNode, personNode, webPageNode, type Crumb } from '../lib/jsonld'
+import type { Route } from '../lib/routes'
+
+interface Props {
+  route: Route
+}
+const { route } = Astro.props
+const { lang, data } = route
+if (data.kind !== 'authorIndex' && data.kind !== 'categoryIndex') throw new Error('IndexView: falscher Typ')
+
+const content = await loadContent()
+const s = t(lang)
+const editorial = editorialFor(content, lang)
+const isAuthors = data.kind === 'authorIndex'
+const heading = isAuthors ? s.authors : s.topics
+const intro = isAuthors ? s.authorsIntro : s.topicsIntro
+const policyHref = refHref(content.settings.legalPages?.[lang]?.editorialPolicy, lang)
+
+const entries = isAuthors
+  ? data.authors.map((a) => ({
+      name: a.name,
+      path: docPath('author', lang, a.slug),
+      text: pick(a.bio, lang),
+      meta: pick(a.jobTitle, lang),
+      image: a.image,
+      count: editorial.filter((d) => d.authors.some((x) => x._id === a._id)).length,
+    }))
+  : data.categories.map((c) => ({
+      name: pick(c.title, lang) ?? '',
+      path: categoryPath(c, lang),
+      text: pick(c.description, lang),
+      meta: undefined,
+      image: undefined,
+      count: editorial.filter((d) => d.category?._id === c._id).length,
+    }))
+
+const crumbs: Crumb[] = [
+  { name: s.home, path: docPath('home', lang) },
+  { name: heading, path: route.path },
+]
+const personImages = isAuthors ? await Promise.all(data.authors.map((a) => absoluteImage(a.image, 400, 1))) : []
+const jsonLd = [
+  webPageNode({
+    path: route.path,
+    lang,
+    title: heading,
+    description: intro,
+    type: isAuthors ? 'AboutPage' : 'CollectionPage',
+    hasBreadcrumb: true,
+    mainEntity: { '@id': `${absoluteUrl(route.path)}#itemlist` },
+  }),
+  breadcrumbNode(route.path, crumbs),
+  linkListNode(route.path, entries),
+  ...(isAuthors ? data.authors.map((a, i) => personNode(a, lang, personImages[i]?.url)) : []),
+]
+---
+
+<BaseLayout lang={lang} title={heading} description={intro} route={route} jsonLd={jsonLd}>
+  <div class="container index-page">
+    <Breadcrumbs crumbs={crumbs} lang={lang} />
+    <header class="index-page__header">
+      <h1>{heading}</h1>
+      <p class="index-page__intro">{intro}</p>
+      {isAuthors && policyHref && <p><a href={policyHref}>{s.howWeWork} →</a></p>}
+    </header>
+
+    <ul class="index-page__list">
+      {
+        entries.map((e) => (
+          <li class="index-card">
+            {e.image?.asset && (
+              <SanityImage image={e.image} widths={[160]} sizes="72px" aspect={1} class="index-card__img" decorative />
+            )}
+            <div>
+              <h2 class="index-card__title">
+                <a href={e.path}>{e.name}</a>
+              </h2>
+              {e.meta && <p class="meta">{e.meta}</p>}
+              {e.text && <p class="index-card__text">{e.text}</p>}
+              <p class="meta">{s.postsCount(e.count)}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .index-page {
+    display: grid;
+    gap: var(--space-6);
+    padding-top: var(--space-6);
+  }
+  .index-page__header {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--measure);
+  }
+  .index-page__intro {
+    font-size: var(--text-lead);
+    color: var(--color-text-muted);
+  }
+  .index-page__list {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .index-card {
+    position: relative;
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+  }
+  .index-card :global(.index-card__img) {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .index-card__title {
+    font-size: var(--text-xl);
+  }
+  .index-card__title a {
+    color: var(--color-heading);
+    text-decoration: none;
+  }
+  .index-card__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .index-card:hover .index-card__title a {
+    color: var(--color-primary);
+  }
+  .index-card__text {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -9,6 +9,7 @@ import { absoluteImage } from './images'
 import { localeInfo, pick, t } from './i18n'
 import { plain } from './jsonld'
 import { getRoutes } from './routes'
+import { isProductionBuild } from './env'
 import type { ContentDoc, EditorialDoc } from './types'
 
 const xmlEscape = (s: string) =>
@@ -17,7 +18,7 @@ const xmlEscape = (s: string) =>
 const xml = (body: string, type = 'application/xml') =>
   new Response(body, { headers: { 'Content-Type': `${type}; charset=utf-8` } })
 
-const isPreview = () => !!process.env.CF_PAGES_BRANCH && process.env.CF_PAGES_BRANCH !== 'main'
+const isPreview = () => !isProductionBuild
 
 // ── RSS ─────────────────────────────────────────────────────
 
@@ -122,7 +123,7 @@ export function robots(): Response {
 
 // ── llms.txt (https://llmstxt.org) ──────────────────────────
 
-function docUrl(d: ContentDoc) {
+function docUrl(d: Pick<ContentDoc, '_type' | 'language' | 'slug'>) {
   return absoluteUrl(docPath(d._type, d.language, d.slug))
 }
 

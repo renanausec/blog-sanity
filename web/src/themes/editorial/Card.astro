@@ -1,0 +1,143 @@
+---
+/**
+ * Editorial-Karte: abgerundet mit weichem Schatten, Bild 3:2, Serifentitel.
+ * lead = große Querkarte, default = Kachel, compact = Querzeile.
+ */
+import SanityImage from '../../components/ui/SanityImage.astro'
+import Rating from '../../components/ui/Rating.astro'
+import { docPath } from '../../../../shared/routing'
+import { categoryPath, formatDate, pick, t } from '../../lib/i18n'
+import type { CardProps } from '../types'
+
+type Props = CardProps
+const { item, variant = 'default', headingLevel = 3, priority = false } = Astro.props
+const s = t(item.language)
+const href = docPath(item._type, item.language, item.slug)
+const Heading = `h${headingLevel}` as 'h2' | 'h3'
+const typeLabel = item._type !== 'article' ? s.type[item._type] : undefined
+const sizes = {
+  lead: '(min-width: 64rem) 36rem, 100vw',
+  default: '(min-width: 64rem) 22rem, (min-width: 40rem) 50vw, 100vw',
+  compact: '(min-width: 40rem) 14rem, 100vw',
+}[variant]
+const widths = { lead: [480, 800, 1200], default: [400, 640, 800], compact: [320, 560] }[variant]
+---
+
+<article class:list={['card', `card--${variant}`]}>
+  {
+    item.mainImage?.asset && (
+      <div class="card__media">
+        <SanityImage image={item.mainImage} widths={widths} sizes={sizes} aspect={3 / 2} priority={priority} decorative />
+      </div>
+    )
+  }
+  <div class="card__body">
+    <p class="card__kicker">
+      {
+        item.category && (
+          <a class="kicker" href={categoryPath(item.category, item.language)}>
+            {pick(item.category.title, item.language)}
+          </a>
+        )
+      }
+      {typeLabel && <span>· {typeLabel}</span>}
+    </p>
+    <Heading class="card__title">
+      <a href={href}>{item.title}</a>
+    </Heading>
+    {typeof item.rating === 'number' && item._type === 'review' && <Rating value={item.rating} lang={item.language} />}
+    {item.excerpt && variant !== 'default' && <p class="card__excerpt">{item.excerpt}</p>}
+    {
+      item.publishedAt && (
+        <p class="meta">
+          <time datetime={item.publishedAt}>{formatDate(item.publishedAt, item.language)}</time>
+        </p>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: grid;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+  }
+  .card__media,
+  .card__media :global(picture) {
+    display: block;
+    height: 100%;
+  }
+  .card__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .card__body {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+    padding: var(--space-4) var(--space-5) var(--space-5);
+  }
+  .card__kicker {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    display: flex;
+    gap: var(--space-1);
+  }
+  .card__kicker a {
+    position: relative;
+    z-index: 1;
+    font-style: italic;
+  }
+  .card__title {
+    font-size: var(--text-xl);
+  }
+  .card__title a {
+    color: var(--color-heading);
+    text-decoration: none;
+  }
+  .card__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .card:hover .card__title a {
+    color: var(--color-primary);
+  }
+  .card__title a:focus-visible {
+    outline: none;
+  }
+  .card:has(.card__title a:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+  .card__excerpt {
+    color: var(--color-text-muted);
+  }
+
+  .card--lead {
+    align-items: center;
+  }
+  @media (min-width: 48rem) {
+    .card--lead {
+      grid-template-columns: 1.2fr 1fr;
+    }
+    .card--compact {
+      grid-template-columns: 14rem 1fr;
+    }
+  }
+  .card--lead .card__title {
+    font-size: var(--text-3xl);
+  }
+  .card--lead .card__body {
+    padding: var(--space-6);
+  }
+</style>

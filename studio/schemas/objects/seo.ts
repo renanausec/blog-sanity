@@ -23,7 +23,8 @@ export const seo = defineType({
       name: 'metaTitle',
       title: 'Meta-Title',
       type: 'string',
-      description: 'Leer = Seitentitel. Der Blogname wird automatisch angehängt.',
+      description:
+        'Leer = Seitentitel. 30–60 Zeichen, Haupt-Keyword vorne, ohne Blognamen (wird automatisch angehängt). Beispiel: „ERP-System auswählen: Kosten, Funktionen & Tipps“.',
       components: { input: charCountInput(30, 60) },
       validation: (rule) => rule.max(70).warning('Über 70 Zeichen wird in Google meist abgeschnitten.'),
     }),
@@ -32,12 +33,19 @@ export const seo = defineType({
       title: 'Meta-Description',
       type: 'text',
       rows: 3,
-      description: 'Leer = Kurzantwort.',
+      description:
+        'Leer = Kurzantwort. 120–160 Zeichen: Nutzen + Keyword + konkreter Mehrwert (Zahl, Vergleich, Jahr). Aktiv formuliert, kein Clickbait.',
       components: { input: charCountInput(120, 160) },
       validation: (rule) => [
         rule.min(70).warning('Kürzer als 70 Zeichen – Google ergänzt dann oft selbst.'),
         rule.max(170).warning('Über ~160 Zeichen wird meist abgeschnitten.'),
       ],
+    }),
+    defineField({
+      name: 'focusKeyword',
+      title: 'Fokus-Keyword',
+      type: 'string',
+      description: 'Intern (wird nicht ausgegeben): Haupt-Suchbegriff der Seite. Sollte in Titel, Slug, Kurzantwort und einer H2 vorkommen.',
     }),
     defineField({
       name: 'canonical',

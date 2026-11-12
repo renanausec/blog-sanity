@@ -104,6 +104,9 @@ const glossaryDe = {
   slug: slug('erp'),
   shortDefinition:
     'ERP (Enterprise Resource Planning) ist Software, die Kernprozesse wie Einkauf, Lager, Produktion, Vertrieb und Finanzen in einer gemeinsamen Datenbank bündelt.',
+  alternateNames: ['Enterprise Resource Planning', 'ERP-System'],
+  sameAs: ['https://de.wikipedia.org/wiki/Enterprise-Resource-Planning', 'https://www.wikidata.org/wiki/Q131508'],
+  category: ref('category-erp'),
   body: [
     h('h2', 'Wofür braucht man ein ERP-System?'),
     p(span('Ein ERP-System ersetzt Insellösungen durch einen gemeinsamen Datenbestand. Bestellungen, Lagerbestände und Rechnungen greifen auf dieselben Stammdaten zu.')),
@@ -117,6 +120,8 @@ const glossaryEn = {
   ...glossaryDe,
   _id: 'demo-glossary-erp-en',
   language: 'en',
+  alternateNames: ['Enterprise Resource Planning', 'ERP system'],
+  sameAs: ['https://en.wikipedia.org/wiki/Enterprise_resource_planning', 'https://www.wikidata.org/wiki/Q131508'],
   shortDefinition:
     'ERP (Enterprise Resource Planning) is software that combines core processes such as purchasing, inventory, production, sales and finance in a single shared database.',
   body: [
@@ -136,6 +141,8 @@ const glossaryCrmDe = {
   slug: slug('crm'),
   shortDefinition:
     'CRM (Customer Relationship Management) bezeichnet Software und Methoden, mit denen Unternehmen Kundenkontakte, Verkaufschancen und Service-Anfragen zentral verwalten.',
+  alternateNames: ['Customer Relationship Management', 'CRM-System'],
+  category: ref('category-crm'),
   relatedTerms: [{ ...ref('demo-glossary-erp-de'), _key: key() }],
 }
 
@@ -197,7 +204,16 @@ const articleDe = {
   excerpt:
     'Ein ERP-System bündelt Finanzen, Lager, Einkauf und Vertrieb in einer Datenbank. Für den Mittelstand zählen vor allem Prozess-Fit, Gesamtkosten über fünf Jahre und ein Anbieter mit Branchenerfahrung.',
   mainImage: image(imgErp, 'Grafik mit dem Schriftzug ERP auf violettem Verlauf'),
+  keyTakeaways: [
+    'Ein ERP-System bündelt Finanzen, Lager, Einkauf und Vertrieb in einer gemeinsamen Datenbank.',
+    'Cloud-ERP senkt die Startkosten, On-Premises bietet mehr Anpassungsmöglichkeiten.',
+    'Eine Einführung dauert im Mittelstand typischerweise drei bis sechs Monate.',
+  ],
+  sources: [
+    { _key: key(), _type: 'source', title: 'Enterprise-Resource-Planning', url: 'https://de.wikipedia.org/wiki/Enterprise-Resource-Planning', publisher: 'Wikipedia' },
+  ],
   authors: [{ ...ref(author._id), _key: key() }],
+  reviewedBy: ref(author._id),
   category: ref('category-erp'),
   publishedAt: daysAgo(3),
   body: articleBody('de'),
@@ -233,7 +249,11 @@ const review = {
   excerpt:
     'Beispiel-CRM Pro ist ein übersichtliches CRM für Teams bis 20 Personen. Stark bei Pipeline und E-Mail-Integration, schwächer bei Auswertungen. Unsere Bewertung: 4 von 5.',
   mainImage: image(imgReview, 'Grafik mit dem Schriftzug Review'),
-  product: { _type: 'product', name: 'Beispiel-CRM Pro', brand: 'Demo GmbH', priceFrom: 15 },
+  product: {
+    _type: 'product', name: 'Beispiel-CRM Pro', brand: 'Demo GmbH', priceFrom: 15,
+    productType: 'software', applicationCategory: 'BusinessApplication', operatingSystem: 'Web, iOS, Android',
+    freePlan: '14 Tage kostenlos testen',
+  },
   rating: 4,
   pros: ['Schnelle Einrichtung', 'Gute E-Mail-Integration', 'Faire Preise'],
   cons: ['Berichte nur eingeschränkt anpassbar', 'Keine Telefonie'],
@@ -255,8 +275,8 @@ const comparison = {
   mainImage: image(imgCrm, 'Grafik mit dem Schriftzug CRM'),
   intro: [p(span('Wir haben drei fiktive CRM-Systeme nach Bedienung, Funktionen und Preis bewertet.'))],
   items: [
-    { _type: 'comparisonItem', _key: key(), name: 'Beispiel-CRM Pro', badge: 'Testsieger', summary: 'Ausgewogenes Gesamtpaket für Vertriebsteams.', pros: ['Einfache Bedienung', 'Gute Integrationen'], cons: ['Begrenzte Berichte'], rating: 4, review: ref(review._id) },
-    { _type: 'comparisonItem', _key: key(), name: 'Muster-CRM Light', badge: 'Preis-Tipp', summary: 'Günstiger Einstieg mit allen Grundfunktionen.', pros: ['Kostenloser Plan'], cons: ['Wenig Automatisierung'], rating: 3.5 },
+    { _type: 'comparisonItem', _key: key(), name: 'Beispiel-CRM Pro', badge: 'Testsieger', bestFor: 'Vertriebsteams bis 20 Personen', priceFrom: 15, summary: 'Ausgewogenes Gesamtpaket für Vertriebsteams.', pros: ['Einfache Bedienung', 'Gute Integrationen'], cons: ['Begrenzte Berichte'], rating: 4, review: ref(review._id) },
+    { _type: 'comparisonItem', _key: key(), name: 'Muster-CRM Light', badge: 'Preis-Tipp', bestFor: 'Selbstständige und Start-ups', priceFrom: 0, summary: 'Günstiger Einstieg mit allen Grundfunktionen.', pros: ['Kostenloser Plan'], cons: ['Wenig Automatisierung'], rating: 3.5 },
     { _type: 'comparisonItem', _key: key(), name: 'Demo Sales Suite', summary: 'Mächtig, aber für kleine Teams oft überdimensioniert.', pros: ['Viele Funktionen'], cons: ['Teuer', 'Lange Einarbeitung'], rating: 3 },
   ],
   comparisonTable: {

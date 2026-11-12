@@ -1,0 +1,49 @@
+---
+/** Quellenverzeichnis (schema.org citation) */
+import { formatDate, t } from '../../lib/i18n'
+import type { LocaleId, Source } from '../../lib/types'
+
+interface Props {
+  sources: Source[] | undefined
+  lang: LocaleId
+}
+const { sources = [], lang } = Astro.props
+---
+
+{
+  sources.length > 0 && (
+    <section class="sources" aria-labelledby="sources-title">
+      <h2 id="sources-title">{t(lang).sources}</h2>
+      <ol>
+        {sources.map((s) => (
+          <li>
+            <a href={s.url} rel="noopener">
+              {s.title}
+            </a>
+            {(s.publisher || s.date) && (
+              <span class="meta">
+                {' '}
+                – {[s.publisher, s.date ? formatDate(s.date, lang) : undefined].filter(Boolean).join(', ')}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+<style>
+  .sources h2 {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-3);
+  }
+  .sources ol {
+    margin: 0;
+    padding-left: 1.4em;
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+  }
+</style>

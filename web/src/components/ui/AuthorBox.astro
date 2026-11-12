@@ -7,8 +7,10 @@ import type { Author, LocaleId } from '../../lib/types'
 interface Props {
   authors: Author[]
   lang: LocaleId
+  /** Link auf „Redaktionelle Richtlinien“ (Vertrauen / E-E-A-T) */
+  policyHref?: string
 }
-const { authors, lang } = Astro.props
+const { authors, lang, policyHref } = Astro.props
 ---
 
 {
@@ -23,6 +25,11 @@ const { authors, lang } = Astro.props
         </p>
         {pick(a.jobTitle, lang) && <p class="meta">{pick(a.jobTitle, lang)}</p>}
         {pick(a.bio, lang) && <p class="author-box__bio">{pick(a.bio, lang)}</p>}
+        {policyHref && (
+          <p class="author-box__policy">
+            <a href={policyHref}>{t(lang).howWeWork} →</a>
+          </p>
+        )}
       </div>
     </section>
   ))
@@ -51,6 +58,10 @@ const { authors, lang } = Astro.props
   }
   .author-box__name a {
     color: var(--color-heading);
+  }
+  .author-box__policy {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
   }
   .author-box__bio {
     margin-top: var(--space-2);

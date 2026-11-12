@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "seed": "sanity exec scripts/seed.ts --with-user-token",
     "demo": "sanity exec scripts/demo-content.ts --with-user-token",
-    "demo:remove": "sanity exec scripts/demo-content.ts --with-user-token -- --remove"
+    "demo:remove": "sanity exec scripts/demo-content.ts --with-user-token -- --remove",
+    "webhook": "sanity exec scripts/create-webhook.ts --with-user-token"
   },
   "dependencies": {
     "@sanity/document-internationalization": "^6.3.0",

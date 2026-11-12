@@ -13,14 +13,18 @@ import RichText from '../components/content/RichText.astro'
 import ComparisonList from '../components/content/ComparisonList.astro'
 import ReviewSummary from '../components/content/ReviewSummary.astro'
 import Table from '../components/content/blocks/Table.astro'
+import KeyTakeaways from '../components/ui/KeyTakeaways.astro'
+import Sources from '../components/ui/Sources.astro'
 import { docPath } from '../../../shared/routing'
-import { categoryPath, pick, readingTime, t } from '../lib/i18n'
+import { loadContent, relatedFor } from '../lib/content'
+import { categoryPath, pick, readingTime, refHref, t } from '../lib/i18n'
 import { absoluteImage } from '../lib/images'
 import {
   articleNode,
   breadcrumbNode,
+  comparisonListNode,
   faqNode,
-  itemListNode,
+  mentionNodes,
   personNode,
   plain,
   productReviewNodes,
@@ -37,6 +41,7 @@ const { route } = Astro.props
 const doc = (route.data as { doc: EditorialDoc }).doc
 const lang = doc.language
 const s = t(lang)
+const content = await loadContent()
 
 const categoryName = doc.category ? pick(doc.category.title, lang) : undefined
 const crumbs: Crumb[] = [
@@ -48,13 +53,19 @@ const crumbs: Crumb[] = [
 const comparison = doc._type === 'comparison' ? (doc as Comparison) : undefined
 const review = doc._type === 'review' ? (doc as Review) : undefined
 
-const fullText = [doc.excerpt, plain(comparison?.intro), plain(doc.body), review?.verdict].filter(Boolean).join(' ')
+const fullText = [doc.excerpt, ...(doc.keyTakeaways ?? []), plain(comparison?.intro), plain(doc.body), review?.verdict]
+  .filter(Boolean)
+  .join(' ')
 const minutes = readingTime(fullText)
 const faq = doc.faq ?? []
+const related = relatedFor(content, doc, 3)
+const policyHref = refHref(content.settings.legalPages?.[lang]?.editorialPolicy, lang)
 
 // Strukturierte Daten
 const image = await absoluteImage(doc.mainImage)
-const authorImages = await Promise.all(doc.authors.map((a) => absoluteImage(a.image, 400, 1)))
+const imageInfo = image ? { ...image, caption: doc.mainImage?.caption ?? doc.mainImage?.alt, credit: doc.mainImage?.credit } : undefined
+const people = [...doc.authors, ...(doc.reviewedBy && !doc.authors.some((a) => a._id === doc.reviewedBy!._id) ? [doc.reviewedBy] : [])]
+const peopleImages = await Promise.all(people.map((a) => absoluteImage(a.image, 400, 1)))
 const productImage = review ? await absoluteImage(review.product.image, 800, undefined) : undefined
 const modified = doc.updatedAt ?? doc.publishedAt
 
@@ -64,10 +75,12 @@ const jsonLd = [
     lang,
     title: doc.title,
     description: doc.excerpt,
-    primaryImage: image?.url,
+    primaryImage: imageInfo,
     datePublished: doc.publishedAt,
     dateModified: modified,
     hasBreadcrumb: true,
+    reviewedBy: doc.reviewedBy,
+    speakable: ['h1', '.short-answer', '.takeaways'],
   }),
   breadcrumbNode(route.path, crumbs),
   articleNode({
@@ -76,35 +89,28 @@ const jsonLd = [
     lang,
     headline: doc.title,
     description: doc.excerpt,
-    image: image?.url,
+    image: imageInfo,
     datePublished: doc.publishedAt,
     dateModified: modified,
     authors: doc.authors,
-    section: categoryName,
+    category: doc.category,
+    mentions: mentionNodes(doc.mentions, content.glossary),
+    sources: doc.sources,
+    keywords: doc.seo?.focusKeyword,
     wordCount: fullText.split(/\s+/).length,
+    translations: doc.translations,
+    docType: doc._type,
   }),
-  ...doc.authors.map((a, i) => personNode(a, lang, authorImages[i]?.url)),
-  comparison ? itemListNode(route.path, comparison.items ?? []) : undefined,
-  review
-    ? productReviewNodes({
-        path: route.path,
-        lang,
-        product: review.product,
-        productImage: productImage?.url,
-        rating: review.rating,
-        pros: review.pros ?? [],
-        cons: review.cons ?? [],
-        verdict: review.verdict,
-        authors: review.authors,
-        datePublished: review.publishedAt,
-      })
-    : undefined,
+  ...people.map((a, i) => personNode(a, lang, peopleImages[i]?.url)),
+  comparison ? comparisonListNode(route.path, comparison.items ?? [], lang) : undefined,
+  review ? productReviewNodes({ path: route.path, lang, review, productImage: productImage?.url }) : undefined,
   faqNode(route.path, faq),
 ]
 
 const tocExtra = [
   ...(comparison ? [{ id: 'ranking-title', label: s.ranking }] : []),
   ...(faq.length ? [{ id: 'faq-title', label: s.faq }] : []),
+  ...(doc.sources?.length ? [{ id: 'sources-title', label: s.sources }] : []),
 ]
 ---
 
@@ -134,10 +140,12 @@ const tocExtra = [
       publishedAt={doc.publishedAt}
       updatedAt={doc.updatedAt}
       minutes={minutes}
+      reviewedBy={doc.reviewedBy}
     />
     <ShortAnswer slot="lead" text={doc.excerpt} lang={lang} />
     <Toc slot="aside" body={[...(comparison?.intro ?? []), ...(doc.body ?? [])]} lang={lang} extra={tocExtra} />
 
+    <KeyTakeaways items={doc.keyTakeaways} lang={lang} />
     {review && <ReviewSummary review={review} lang={lang} />}
     {comparison?.intro && <RichText value={comparison.intro} />}
     {comparison && <ComparisonList items={comparison.items ?? []} lang={lang} />}
@@ -151,8 +159,14 @@ const tocExtra = [
     }
     <RichText value={doc.body} />
     <Faq items={faq} lang={lang} />
-    <AuthorBox authors={doc.authors} lang={lang} />
+    <Sources sources={doc.sources} lang={lang} />
+    <AuthorBox authors={doc.authors} lang={lang} policyHref={policyHref} />
 
-    <Related slot="after" items={doc.related} lang={lang} />
+    <Related
+      slot="after"
+      items={related}
+      lang={lang}
+      title={categoryName && !(doc.related?.length) ? s.moreOnTopic(categoryName) : undefined}
+    />
   </ArticleLayout>
 </BaseLayout>

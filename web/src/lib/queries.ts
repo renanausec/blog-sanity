@@ -1,3 +1,5 @@
+import { localeIds } from '../../../site.config'
+
 /**
  * GROQ-Abfragen. Es werden nur veröffentlichte Dokumente gelesen (perspective: published).
  * Referenzen (Bilder, Links, Autoren, Kategorien) werden direkt aufgelöst.
@@ -29,11 +31,25 @@ const richText = (field: string) => `${field}[]{
   _type == "cta" => {..., "link": link${linkTarget}}
 }`
 
+/** Portable Text unter beliebigem Pfad als Wert (z. B. body.de) */
+const richTextOf = (path: string) => `${path}[]{
+  ...,
+  ${markDefs},
+  _type == "figure" => ${image},
+  _type == "callout" => {..., ${simpleText('body')}},
+  _type == "cta" => {..., "link": link${linkTarget}}
+}`
+
 const faq = `faq[]{_key, question, ${simpleText('answer')}}`
 
 const seo = `seo{..., ogImage${image}}`
 
 const category = `{_id, title, slug, description, order, noIndex}`
+
+/** Kategorie inkl. Hub-Text (nur für die Kategorie-Abfrage) */
+const categoryFull = `{_id, title, slug, description, order, noIndex, "body": {${localeIds
+  .map((l) => `"${l}": ${richTextOf(`body.${l}`)}`)
+  .join(', ')}}}`
 
 const author = `{_id, name, "slug": slug.current, image${image}, jobTitle, bio, expertise, links}`
 
@@ -59,24 +75,32 @@ const editorial = `
   "authors": authors[]->${author},
   "category": category->${category},
   ${richText('body')},
-  "related": related[]->${card}
+  "related": related[]->${card},
+  keyTakeaways,
+  sources,
+  "reviewedBy": reviewedBy->${author}
 `
 
 const published = `defined(slug.current) && defined(language)`
+
+/** Erzeugt {"de": …, "en": …} für alle Sprachen aus site.config.ts */
+const perLocale = (build: (lang: string) => string) => localeIds.map((l) => `"${l}": ${build(l)}`).join(', ')
 
 export const queries = {
   settings: `*[_id == "siteSettings"][0]{
     ...,
     logo${image}, favicon${image}, defaultOgImage${image},
-    "mainNav": {"de": mainNav.de[]${linkTarget}, "en": mainNav.en[]${linkTarget}},
-    "footerNav": {"de": footerNav.de[]${linkTarget}, "en": footerNav.en[]${linkTarget}},
-    "legalPages": {
-      "de": {"imprint": legalPages.de.imprint->${linkRef}, "privacy": legalPages.de.privacy->${linkRef}, "editorialPolicy": legalPages.de.editorialPolicy->${linkRef}, "contact": legalPages.de.contact->${linkRef}},
-      "en": {"imprint": legalPages.en.imprint->${linkRef}, "privacy": legalPages.en.privacy->${linkRef}, "editorialPolicy": legalPages.en.editorialPolicy->${linkRef}, "contact": legalPages.en.contact->${linkRef}}
-    }
+    "mainNav": {${perLocale((l) => `mainNav.${l}[]${linkTarget}`)}},
+    "footerNav": {${perLocale((l) => `footerNav.${l}[]${linkTarget}`)}},
+    "legalPages": {${perLocale(
+      (l) =>
+        `{${['imprint', 'privacy', 'editorialPolicy', 'contact']
+          .map((k) => `"${k}": legalPages.${l}.${k}->${linkRef}`)
+          .join(', ')}}`,
+    )}}
   }`,
 
-  categories: `*[_type == "category"] | order(order asc, title.de asc) ${category}`,
+  categories: `*[_type == "category"] | order(order asc, title.de asc) ${categoryFull}`,
 
   authors: `*[_type == "author" && defined(slug.current)] | order(name asc) ${author}`,
 
@@ -97,7 +121,8 @@ export const queries = {
 
   glossary: `*[_type == "glossaryTerm" && ${published}] | order(lower(title) asc) {
     ${base},
-    shortDefinition, updatedAt,
+    shortDefinition, updatedAt, alternateNames, sameAs,
+    "category": category->${category},
     ${richText('body')},
     "relatedTerms": relatedTerms[]->${linkRef}
   }`,
@@ -115,7 +140,7 @@ export const queries = {
 
   pages: `*[_type == "page" && ${published}] {
     ${base},
-    intro, updatedAt,
+    pageType, intro, updatedAt,
     ${richText('body')}
   }`,
 }

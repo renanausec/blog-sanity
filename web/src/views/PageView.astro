@@ -7,7 +7,8 @@ import Faq from '../components/ui/Faq.astro'
 import RichText from '../components/content/RichText.astro'
 import { docPath } from '../../../shared/routing'
 import { formatDate, t } from '../lib/i18n'
-import { breadcrumbNode, faqNode, webPageNode, type Crumb } from '../lib/jsonld'
+import { loadContent } from '../lib/content'
+import { breadcrumbNode, faqNode, ids, webPageNode, type Crumb } from '../lib/jsonld'
 import type { Route } from '../lib/routes'
 import type { Page } from '../lib/types'
 
@@ -16,14 +17,35 @@ interface Props {
 }
 const { route } = Astro.props
 const page = (route.data as { doc: Page }).doc
+/** schema.org-Seitentyp je Seitentyp im Studio */
+const pageSchemaType: Record<string, string> = {
+  generic: 'WebPage',
+  about: 'AboutPage',
+  editorialPolicy: 'AboutPage',
+  contact: 'ContactPage',
+  imprint: 'WebPage',
+  privacy: 'WebPage',
+}
 const lang = page.language
 const s = t(lang)
+// Kontaktseite: E-Mail kommt zentral aus Einstellungen → Organisation
+const { settings } = await loadContent()
+const contactEmail = page.pageType === 'contact' ? settings.organization?.email : undefined
 const crumbs: Crumb[] = [
   { name: s.home, path: docPath('home', lang) },
   { name: page.title, path: route.path },
 ]
 const jsonLd = [
-  webPageNode({ path: route.path, lang, title: page.title, description: page.intro, dateModified: page.updatedAt, hasBreadcrumb: true }),
+  webPageNode({
+    path: route.path,
+    lang,
+    title: page.title,
+    description: page.intro,
+    dateModified: page.updatedAt,
+    hasBreadcrumb: true,
+    type: pageSchemaType[page.pageType ?? 'generic'],
+    about: page.pageType === 'about' || page.pageType === 'editorialPolicy' ? { '@id': ids.organization() } : undefined,
+  }),
   breadcrumbNode(route.path, crumbs),
   faqNode(route.path, page.faq ?? []),
 ]
@@ -40,12 +62,35 @@ const jsonLd = [
         </p>
       )
     }
+    {
+      contactEmail && (
+        <section class="contact-box" aria-labelledby="contact-box-title">
+          <h2 id="contact-box-title">{s.writeUs}</h2>
+          <p>
+            <a class="button" href={`mailto:${contactEmail}`}>
+              {contactEmail}
+            </a>
+          </p>
+        </section>
+      )
+    }
     <RichText value={page.body} />
     <Faq items={page.faq} lang={lang} />
   </ArticleLayout>
 </BaseLayout>
 
 <style>
+  .contact-box {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-lg);
+    max-width: var(--measure);
+  }
+  .contact-box h2 {
+    font-size: var(--text-xl);
+  }
   .page-intro {
     font-size: var(--text-lead);
     font-weight: var(--weight-lead);

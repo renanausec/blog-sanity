@@ -11,6 +11,7 @@ import GlossaryIndexView from '../views/GlossaryIndexView.astro'
 import GlossaryTermView from '../views/GlossaryTermView.astro'
 import LandingView from '../views/LandingView.astro'
 import PageView from '../views/PageView.astro'
+import IndexView from '../views/IndexView.astro'
 
 export const getStaticPaths = (async () => {
   const routes = await getRoutes()
@@ -28,7 +29,10 @@ const { data } = route
 const docType = data.kind === 'doc' ? data.doc._type : undefined
 ---
 
-{data.kind === 'home' || data.kind === 'category' || data.kind === 'author' ? <ListView route={route} /> : null}
+{data.kind === 'home' || data.kind === 'category' || data.kind === 'author' || data.kind === 'hub' ? (
+  <ListView route={route} />
+) : null}
+{(data.kind === 'authorIndex' || data.kind === 'categoryIndex') && <IndexView route={route} />}
 {data.kind === 'glossaryIndex' && <GlossaryIndexView route={route} />}
 {(docType === 'article' || docType === 'comparison' || docType === 'review') && <EditorialView route={route} />}
 {docType === 'glossaryTerm' && <GlossaryTermView route={route} />}

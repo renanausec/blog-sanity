@@ -18,7 +18,8 @@ import type {
   Review,
   SiteSettings,
 } from './types'
-import { siteConfig } from '../../../site.config'
+import { localeIds, siteConfig } from '../../../site.config'
+import { autoLinkGlossary, buildPatterns, termKey } from './glossaryLinks'
 
 export interface Content {
   settings: SiteSettings
@@ -73,14 +74,38 @@ async function fetchAll(): Promise<Content> {
       related: (d.related ?? []).filter(Boolean),
     }))
 
+  // Automatische Glossar-Verlinkung (einmal pro Build)
+  const patterns = Object.fromEntries(localeIds.map((l) => [l, buildPatterns(glossary, l)]))
+  const linkEditorial = <T extends EditorialDoc>(doc: T): T => {
+    const linked = new Set<string>()
+    const intro = (doc as unknown as Comparison).intro
+    const next = { ...doc } as T & { intro?: Comparison['intro'] }
+    if (intro) next.intro = autoLinkGlossary(intro, patterns[doc.language], linked)
+    next.body = autoLinkGlossary(doc.body, patterns[doc.language], linked)
+    next.mentions = [...linked]
+    return next
+  }
+  const linkTerm = (term: GlossaryTerm): GlossaryTerm => {
+    const linked = new Set<string>()
+    const self = termKey(term.language, term.slug)
+    const body = autoLinkGlossary(term.body, patterns[term.language], linked, { exclude: self, max: 6 })
+    return { ...term, body, relatedTerms: (term.relatedTerms ?? []).filter(Boolean), mentions: [...linked].filter((k) => k !== self) }
+  }
+  const linkCategory = (category: Category): Category => ({
+    ...category,
+    body: Object.fromEntries(
+      localeIds.map((l) => [l, autoLinkGlossary(category.body?.[l], patterns[l], new Set(), { max: 8 })]),
+    ),
+  })
+
   return {
     settings: settings ?? { siteName: siteConfig.name },
-    categories,
+    categories: categories.map(linkCategory),
     authors,
-    articles: clean(articles),
-    comparisons: clean(comparisons),
-    reviews: clean(reviews),
-    glossary: glossary.map((g) => ({ ...g, relatedTerms: (g.relatedTerms ?? []).filter(Boolean) })),
+    articles: clean(articles).map(linkEditorial),
+    comparisons: clean(comparisons).map(linkEditorial),
+    reviews: clean(reviews).map(linkEditorial),
+    glossary: glossary.map(linkTerm),
     landingPages,
     pages,
   }
@@ -106,4 +131,35 @@ export function toCard(doc: EditorialDoc): CardItem {
     category: doc.category,
     rating: (doc as Review).rating,
   }
+}
+
+/**
+ * Verwandte Inhalte: manuell gepflegte zuerst, aufgefüllt mit Inhalten,
+ * die dieselben Glossarbegriffe erwähnen bzw. derselben Kategorie angehören.
+ */
+export function relatedFor(content: Content, doc: EditorialDoc, count = 3): CardItem[] {
+  const manual = doc.related ?? []
+  if (manual.length >= count) return manual
+  const taken = new Set([doc._id, ...manual.map((r) => r._id)])
+  const mentions = new Set(doc.mentions ?? [])
+  const scored = editorialFor(content, doc.language)
+    .filter((d) => !taken.has(d._id))
+    .map((d) => ({
+      d,
+      score:
+        (d.category?._id && d.category._id === doc.category?._id ? 2 : 0) +
+        (d.mentions ?? []).filter((m) => mentions.has(m)).length,
+    }))
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score || b.d.publishedAt.localeCompare(a.d.publishedAt))
+  return [...manual, ...scored.slice(0, count - manual.length).map((x) => toCard(x.d))]
+}
+
+/** Redaktionelle Inhalte, die einen Glossarbegriff erwähnen (für „Erwähnt in“) */
+export function mentionedIn(content: Content, term: GlossaryTerm, limit = 8): CardItem[] {
+  const key = `${term.language}:${term.slug}`
+  return editorialFor(content, term.language)
+    .filter((d) => d.mentions?.includes(key))
+    .slice(0, limit)
+    .map(toCard)
 }

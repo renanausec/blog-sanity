@@ -138,7 +138,29 @@ export const siteSettings = defineType({
       group: 'organization',
       fields: [
         defineField({ name: 'legalName', title: 'Rechtlicher Name', type: 'string' }),
-        defineField({ name: 'email', title: 'E-Mail', type: 'email' }),
+        defineField({
+          name: 'description',
+          title: 'Wer wir sind',
+          type: 'localeText',
+          description:
+            'Je Sprache 2–4 Sätze über das Projekt: Wer steht dahinter, welche Themen, für wen, wie wird gearbeitet (unabhängig, getestet, regelmäßig aktualisiert). Wird als Organization.description und im Footer genutzt – wichtig für GEO.',
+        }),
+        defineField({
+          name: 'knowsAbout',
+          title: 'Themengebiete',
+          type: 'array',
+          of: [{ type: 'string' }],
+          options: { layout: 'tags' },
+          description: 'Schlagworte für schema.org knowsAbout (z. B. ERP, CRM, Marketing-Automation, KI, Cyber Security).',
+        }),
+        defineField({ name: 'foundingDate', title: 'Gründungsdatum', type: 'date' }),
+        defineField({
+          name: 'email',
+          title: 'Kontakt-E-Mail',
+          type: 'email',
+          description:
+            'Zentrale Kontaktadresse. Erscheint automatisch auf der Kontaktseite (alle Sprachen), im Footer und im schema.org contactPoint. Nur hier ändern.',
+        }),
         defineField({ name: 'streetAddress', title: 'Straße und Hausnummer', type: 'string' }),
         defineField({ name: 'postalCode', title: 'PLZ', type: 'string' }),
         defineField({ name: 'city', title: 'Ort', type: 'string' }),

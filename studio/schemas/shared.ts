@@ -107,7 +107,7 @@ export const excerptField = defineField({
   rows: 3,
   group: 'content',
   description:
-    'Direkte Antwort auf die Kernfrage in 1–3 Sätzen. Steht ganz oben auf der Seite und dient als Fallback für die Meta-Description.',
+    'GEO-Kernfeld: direkte, für sich allein verständliche Antwort auf die Suchfrage in 1–3 Sätzen (ca. 150–300 Zeichen). Beginnt mit dem Thema als Subjekt („Ein ERP-System ist …“), enthält konkrete Fakten/Zahlen, keine Floskeln, keine Verweise wie „in diesem Artikel“. Steht ganz oben, wird als speakable markiert und dient als Fallback für die Meta-Description.',
   validation: (rule) => [
     rule.required(),
     rule.min(80).warning('Etwas knapp – mindestens ~80 Zeichen.'),
@@ -120,6 +120,7 @@ export const mainImageField = defineField({
   title: 'Titelbild',
   type: 'figure',
   group: 'content',
+  description: 'Querformat, mind. 1600 × 900 px. Alt-Text beschreibt den Bildinhalt sachlich (nicht den Titel wiederholen). Wird auch als OG-Bild genutzt.',
 })
 
 export const authorsField = defineField({
@@ -127,6 +128,7 @@ export const authorsField = defineField({
   title: 'Autor(en)',
   type: 'array',
   group: 'meta',
+  description: 'Verfasser:in des Inhalts (schema.org author). Mindestens eine Person – wichtig für E-E-A-T.',
   of: [{ type: 'reference', to: [{ type: 'author' }] }],
   validation: (rule) => rule.required().min(1).unique(),
 })
@@ -136,6 +138,7 @@ export const categoryField = defineField({
   title: 'Kategorie',
   type: 'reference',
   group: 'meta',
+  description: 'Genau eine Hauptkategorie (Brotkrumen, Kategorieseite, schema.org about).',
   to: [{ type: 'category' }],
   validation: (rule) => rule.required(),
 })
@@ -169,7 +172,8 @@ export function relatedField(types: string[], title = 'Verwandte Inhalte') {
     title,
     type: 'array',
     group: 'meta',
-    description: 'Max. 6. Nur Inhalte derselben Sprache.',
+    description:
+      'Max. 6, nur Inhalte derselben Sprache. Bewusst passende Folgethemen wählen (interne Verlinkung). Leer = automatisch Inhalte derselben Kategorie.',
     of: [{ type: 'reference', to: types.map((type) => ({ type })), options: { filter: sameLanguageFilter } }],
     validation: (rule) => rule.max(6).unique(),
   })
@@ -180,8 +184,59 @@ export const faqField = defineField({
   title: 'FAQ',
   type: 'array',
   group: 'faq',
-  description: 'Optional. Wird als Akkordeon angezeigt und automatisch als FAQPage-Schema ausgegeben.',
+  description:
+    'Optional, 3–6 echte Nutzerfragen (wie man sie in Google/ChatGPT eintippt). Antworten 1–3 Sätze, direkt beginnend („Ja, …“, „Etwa 50 € …“). Erscheint als Akkordeon und als FAQPage-Schema.',
   of: [{ type: 'faqItem' }],
+})
+
+/** Das Wichtigste in Kürze – 3–5 Kernaussagen (GEO: leicht zitierbar) */
+export const keyTakeawaysField = defineField({
+  name: 'keyTakeaways',
+  title: 'Das Wichtigste in Kürze',
+  type: 'array',
+  group: 'content',
+  description:
+    '3–5 Kernaussagen als vollständige, eigenständige Sätze mit konkreten Fakten (je max. ~160 Zeichen). Erscheinen als Liste unter der Kurzantwort – ideal für KI-Zitate.',
+  of: [{ type: 'string' }],
+  validation: (rule) => rule.max(6).warning('Mehr als 6 Punkte verwässern die Kernaussagen.'),
+})
+
+/** Quellen – Belege für Fakten (schema.org citation) */
+export const sourcesField = defineField({
+  name: 'sources',
+  title: 'Quellen',
+  type: 'array',
+  group: 'meta',
+  description:
+    'Belege für Zahlen und Aussagen (Studien, Herstellerangaben, Statistiken). Erscheinen als Quellenliste am Ende und als schema.org citation – stärkt Glaubwürdigkeit bei Google und KI-Suchen.',
+  of: [
+    {
+      type: 'object',
+      name: 'source',
+      fields: [
+        defineField({ name: 'title', title: 'Titel', type: 'string', validation: (rule) => rule.required() }),
+        defineField({
+          name: 'url',
+          title: 'URL',
+          type: 'url',
+          validation: (rule) => rule.required().uri({ scheme: ['https', 'http'] }),
+        }),
+        defineField({ name: 'publisher', title: 'Herausgeber', type: 'string', description: 'z. B. „Statistisches Bundesamt“, „Gartner“' }),
+        defineField({ name: 'date', title: 'Datum', type: 'date' }),
+      ],
+      preview: { select: { title: 'title', subtitle: 'publisher' } },
+    },
+  ],
+})
+
+/** Fachliche Prüfung (schema.org reviewedBy) */
+export const reviewedByField = defineField({
+  name: 'reviewedBy',
+  title: 'Fachlich geprüft von',
+  type: 'reference',
+  group: 'meta',
+  description: 'Optional: Expert:in, die den Inhalt fachlich geprüft hat (muss nicht Autor:in sein). Wird angezeigt und als reviewedBy ausgegeben.',
+  to: [{ type: 'author' }],
 })
 
 export const seoField = defineField({

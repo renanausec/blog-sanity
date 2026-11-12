@@ -70,3 +70,18 @@ export const localeSlug = defineType({
     }),
   ),
 })
+
+/** Fließtext je Sprache (z. B. Hub-Text auf Kategorieseiten) */
+export const localeRichText = defineType({
+  name: 'localeRichText',
+  title: 'Fließtext (mehrsprachig)',
+  type: 'object',
+  options: { collapsible: true, collapsed: true },
+  fields: siteConfig.locales.map((l) =>
+    defineField({
+      name: l.id,
+      title: l.title,
+      type: 'richText',
+    }),
+  ),
+})

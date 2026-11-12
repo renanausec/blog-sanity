@@ -36,6 +36,16 @@ export const siteConfig = {
   } satisfies Record<LocaleId, string>,
 
   /**
+   * „Über uns“-Text je Sprache (Fallback, falls in Sanity → Einstellungen → Organisation nichts steht).
+   * Wird im Footer und als Organization.description ausgegeben – für GEO wichtig:
+   * Wer steht dahinter, welche Themen, für wen, wie wird gearbeitet.
+   */
+  about: {
+    de: 'Tekpixo ist ein unabhängiges Online-Magazin für Business-Software. Wir erklären ERP- und CRM-Systeme, Marketing-Software, künstliche Intelligenz (KI) und Cyber Security verständlich – mit Ratgebern, Vergleichen, Testberichten und einem Fachglossar für Entscheider in kleinen und mittleren Unternehmen. Unsere Inhalte stützen sich auf überprüfbare Quellen und werden regelmäßig aktualisiert.',
+    en: 'Tekpixo is an independent online magazine about business software. We explain ERP and CRM systems, marketing software, artificial intelligence (AI) and cyber security in plain language – with guides, comparisons, reviews and a glossary for decision-makers in small and mid-sized companies. Our content is based on verifiable sources and updated regularly.',
+  } satisfies Record<LocaleId, string>,
+
+  /**
    * Sprachen. Die erste ist die Hauptsprache: Sie liegt ohne Präfix im Wurzelverzeichnis (/)
    * und ist das Ziel von hreflang="x-default". Alle weiteren Sprachen erhalten ein Präfix (/en/).
    */

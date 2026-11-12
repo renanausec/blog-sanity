@@ -4,6 +4,7 @@
  * Varianten: lead (Aufmacher), default (Raster), compact (Textliste mit Mini-Bild).
  */
 import SanityImage from '../../components/ui/SanityImage.astro'
+import Rating from '../../components/ui/Rating.astro'
 import { docPath } from '../../../../shared/routing'
 import { categoryPath, formatDate, pick, t } from '../../lib/i18n'
 import type { CardProps } from '../types'
@@ -45,6 +46,7 @@ const aspect = variant === 'compact' ? 1 : variant === 'lead' ? 16 / 9 : 5 / 3
     <Heading class="card__title">
       <a href={href}>{item.title}</a>
     </Heading>
+    {typeof item.rating === 'number' && item._type === 'review' && <Rating value={item.rating} lang={item.language} />}
     {variant !== 'compact' && item.excerpt && <p class="card__excerpt">{item.excerpt}</p>}
     {
       item.publishedAt && (

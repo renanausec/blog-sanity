@@ -10,8 +10,9 @@ interface Props {
   publishedAt: string
   updatedAt?: string
   minutes?: number
+  reviewedBy?: Author
 }
-const { lang, authors, publishedAt, updatedAt, minutes } = Astro.props
+const { lang, authors, publishedAt, updatedAt, minutes, reviewedBy } = Astro.props
 const s = t(lang)
 ---
 
@@ -38,6 +39,14 @@ const s = t(lang)
     updatedAt && updatedAt.slice(0, 10) !== publishedAt.slice(0, 10) && (
       <span>
         {s.updatedOn} <time datetime={updatedAt}>{formatDate(updatedAt, lang)}</time>
+      </span>
+    )
+  }
+  {
+    reviewedBy && (
+      <span>
+        {s.reviewedBy}{' '}
+        <a href={docPath('author', lang, reviewedBy.slug)}>{reviewedBy.name}</a>
       </span>
     )
   }

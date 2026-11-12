@@ -30,16 +30,24 @@ export interface HeaderProps {
   languages: LanguageLink[]
 }
 
+export interface FooterColumn {
+  title: string
+  links: NavLink[]
+}
+
 export interface FooterProps {
   lang: LocaleId
   siteName: string
   homeHref: string
-  text?: string
-  nav: NavLink[]
-  categories: NavLink[]
+  /** „Über uns“-Text (GEO: wer, was, für wen, wie gearbeitet wird) */
+  about?: string
+  /** Linkspalten, z. B. Themen · Ratgeber · Über uns */
+  columns: FooterColumn[]
+  /** Rechtliches (Impressum, Datenschutz) – kleine Zeile unten */
   legal: NavLink[]
   social: NavLink[]
   rssHref: string
+  email?: string
 }
 
 export interface CardProps {

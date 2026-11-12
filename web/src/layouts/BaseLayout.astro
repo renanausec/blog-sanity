@@ -15,9 +15,10 @@ import { loadContent } from '../lib/content'
 import { categoryPath, linkHref, localeInfo, pick, refHref, refLabel, t } from '../lib/i18n'
 import { absoluteImage, hasImage, sourceUrl } from '../lib/images'
 import { compact, organizationNode, websiteNode } from '../lib/jsonld'
-import { xDefault, type Route } from '../lib/routes'
+import { getRoutes, xDefault, type Route } from '../lib/routes'
+import { isProductionBuild } from '../lib/env'
 import type { SanityImage, Seo } from '../lib/types'
-import type { NavLink, LanguageLink } from '../themes/types'
+import type { FooterColumn, NavLink, LanguageLink } from '../themes/types'
 
 interface Props {
   lang: LocaleId
@@ -46,7 +47,7 @@ const locale = localeInfo(lang)
 const baseTitle = seo?.metaTitle || title
 const fullTitle = isHome && !seo?.metaTitle ? baseTitle : `${baseTitle} | ${siteName}`
 const metaDescription = (seo?.metaDescription || description || siteConfig.description[lang]).trim()
-const isPreview = !!process.env.CF_PAGES_BRANCH && process.env.CF_PAGES_BRANCH !== 'main'
+const isPreview = !isProductionBuild
 const noIndex = Astro.props.noIndex || seo?.noIndex || route?.noIndex || isPreview
 const noFollow = seo?.noFollow || isPreview
 const robots = [noIndex ? 'noindex' : 'index', noFollow ? 'nofollow' : 'follow'].join(', ')
@@ -113,9 +114,11 @@ const languages: LanguageLink[] = siteConfig.locales.map((l) => {
 })
 
 const legalPages = settings.legalPages?.[lang] ?? {}
-const legal: NavLink[] = (['contact', 'editorialPolicy', 'imprint', 'privacy'] as const)
-  .map((key) => ({ label: refLabel(legalPages[key], lang) ?? s.legal[key], href: refHref(legalPages[key], lang) ?? '' }))
-  .filter((l) => l.href)
+const pageLink = (key: 'contact' | 'editorialPolicy' | 'imprint' | 'privacy'): NavLink | undefined => {
+  const href = refHref(legalPages[key], lang)
+  return href ? { label: refLabel(legalPages[key], lang) ?? s.legal[key], href } : undefined
+}
+const legal = [pageLink('imprint'), pageLink('privacy')].filter((l): l is NavLink => !!l)
 const footerNav: NavLink[] = (settings.footerNav?.[lang] ?? [])
   .map((l) => ({ label: l.label, href: linkHref(l, lang) ?? '' }))
   .filter((l) => l.href)
@@ -123,12 +126,41 @@ const social: NavLink[] = Object.entries(siteConfig.social)
   .filter(([, url]) => url)
   .map(([name, url]) => ({ label: name.charAt(0).toUpperCase() + name.slice(1), href: url }))
 
+// Footer-Spalten: nur auf existierende, indexierbare Seiten verlinken
+const indexable = new Set((await getRoutes()).filter((r) => !r.noIndex).map((r) => r.path))
+const hubLink = (label: string, href: string): NavLink | undefined => (indexable.has(href) ? { label, href } : undefined)
+const footerColumns: FooterColumn[] = [
+  {
+    title: s.topics,
+    links: [...categoryNav, hubLink(`${s.topics} →`, docPath('categoryIndex', lang))].filter((l): l is NavLink => !!l),
+  },
+  {
+    title: s.guides,
+    links: [
+      hubLink(s.comparisons, docPath('comparisonIndex', lang)),
+      hubLink(s.reviews, docPath('reviewIndex', lang)),
+      hubLink(s.glossary, docPath('glossaryIndex', lang)),
+      ...footerNav,
+    ].filter((l): l is NavLink => !!l),
+  },
+  {
+    title: s.aboutUs,
+    links: [
+      hubLink(s.authors, docPath('authorIndex', lang)),
+      pageLink('editorialPolicy'),
+      pageLink('contact'),
+    ].filter((l): l is NavLink => !!l),
+  },
+].filter((c) => c.links.length > 0)
+const aboutText =
+  pick(settings.footerText, lang) ?? pick(settings.organization?.description, lang) ?? siteConfig.about[lang]
+
 const rssHref = `${docPath('home', lang)}rss.xml`
 
 // ── JSON-LD ─────────────────────────────────────────────────
 const graph = compact({
   '@context': 'https://schema.org',
-  '@graph': [organizationNode(settings, logo?.url), websiteNode(settings, lang), ...jsonLd.filter(Boolean)],
+  '@graph': [organizationNode(settings, lang, logo?.url), websiteNode(settings, lang), ...jsonLd.filter(Boolean)],
 })
 
 // ── AdSense (nur wenn in site.config.ts UND in Sanity aktiviert) ─────
@@ -203,12 +235,12 @@ const adsenseClient =
       lang={lang}
       siteName={siteName}
       homeHref={docPath('home', lang)}
-      text={pick(settings.footerText, lang) ?? siteConfig.description[lang]}
-      nav={footerNav}
-      categories={categoryNav}
+      about={aboutText}
+      columns={footerColumns}
       legal={legal}
       social={social}
       rssHref={rssHref}
+      email={settings.organization?.email}
     />
   </body>
 </html>

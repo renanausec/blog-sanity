@@ -1,0 +1,85 @@
+---
+/**
+ * Editorial-Artikel: zentrierter Kopf, schmale Lesespalte, Bild mit runden Ecken.
+ * Keine Seitenleiste – das Inhaltsverzeichnis steht unter dem Kopf.
+ *
+ * Slots: breadcrumbs, meta, lead, aside, default (Text), after
+ */
+import SanityImage from '../../components/ui/SanityImage.astro'
+import type { ArticleLayoutProps } from '../types'
+
+type Props = ArticleLayoutProps
+const { title, kicker, image } = Astro.props
+---
+
+<article class="container article">
+  <div class="article__crumbs"><slot name="breadcrumbs" /></div>
+  <header class="article__header">
+    {kicker && <a class="kicker article__kicker" href={kicker.href}>{kicker.label}</a>}
+    <h1>{title}</h1>
+    <div class="article__meta"><slot name="meta" /></div>
+  </header>
+
+  {
+    image?.asset && (
+      <figure class="article__image figure">
+        <SanityImage image={image} widths={[480, 800, 1200]} sizes="(min-width: 52rem) 52rem, 100vw" aspect={3 / 2} priority />
+        {(image.caption || image.credit) && (
+          <figcaption>
+            {image.caption}
+            {image.credit && <span> ({image.credit})</span>}
+          </figcaption>
+        )}
+      </figure>
+    )
+  }
+
+  <div class="article__column">
+    <slot name="lead" />
+    <slot name="aside" />
+    <slot />
+  </div>
+
+  <slot name="after" />
+</article>
+
+<style>
+  .article {
+    padding-top: var(--space-5);
+  }
+  .article__crumbs {
+    display: flex;
+    justify-content: center;
+  }
+  .article__header {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-4);
+    max-width: 48rem;
+    margin: var(--space-6) auto 0;
+    text-align: center;
+  }
+  .article__kicker {
+    font-style: italic;
+    font-size: var(--text-base);
+  }
+  .article__header h1 {
+    font-size: var(--text-4xl);
+  }
+  .article__meta :global(.byline) {
+    justify-content: center;
+  }
+  .article__image {
+    max-width: 52rem;
+    margin: var(--space-7) auto 0;
+  }
+  .article__image :global(img) {
+    border-radius: var(--radius-lg);
+  }
+  .article__column {
+    display: grid;
+    gap: var(--space-6);
+    max-width: var(--measure);
+    margin: var(--space-7) auto 0;
+  }
+</style>

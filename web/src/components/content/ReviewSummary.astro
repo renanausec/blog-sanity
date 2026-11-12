@@ -25,7 +25,26 @@ const { product } = review
         <span class="visually-hidden">{s.rating}: </span>
         <Rating value={review.rating} lang={lang} />
       </p>
-      {typeof product.priceFrom === 'number' && <p class="meta">{s.priceFrom(product.priceFrom)}</p>}
+      <dl class="review-summary__facts">
+        {typeof product.priceFrom === 'number' && (
+          <div>
+            <dt>{s.price}</dt>
+            <dd>{s.priceFrom(product.priceFrom)}</dd>
+          </div>
+        )}
+        {product.freePlan && (
+          <div>
+            <dt>{s.freeVersion}</dt>
+            <dd>{product.freePlan}</dd>
+          </div>
+        )}
+        {product.operatingSystem && (
+          <div>
+            <dt>{s.platforms}</dt>
+            <dd>{product.operatingSystem}</dd>
+          </div>
+        )}
+      </dl>
     </div>
   </div>
 
@@ -66,6 +85,25 @@ const { product } = review
   .review-summary :global(.review-summary__img) {
     width: 96px;
     height: auto;
+  }
+  .review-summary__facts {
+    display: grid;
+    gap: var(--space-1);
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-sm);
+  }
+  .review-summary__facts div {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .review-summary__facts dt {
+    font-weight: var(--weight-bold);
+  }
+  .review-summary__facts dt::after {
+    content: ':';
+  }
+  .review-summary__facts dd {
+    margin: 0;
   }
   .review-summary__rating {
     margin-top: var(--space-2);
