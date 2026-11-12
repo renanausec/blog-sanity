@@ -1,0 +1,30 @@
+{
+  "name": "studio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "sanity dev",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "schema:deploy": "sanity schema deploy",
+    "typecheck": "tsc --noEmit",
+    "seed": "sanity exec scripts/seed.ts --with-user-token",
+    "demo": "sanity exec scripts/demo-content.ts --with-user-token",
+    "demo:remove": "sanity exec scripts/demo-content.ts --with-user-token -- --remove"
+  },
+  "dependencies": {
+    "@sanity/document-internationalization": "^6.3.0",
+    "@sanity/icons": "^5.3.0",
+    "@sanity/ui": "^4.4.11",
+    "@sanity/vision": "^6.23.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sanity": "^6.23.0",
+    "sanity-plugin-internationalized-array": "^5.3.10",
+    "styled-components": "^6.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^6.0.0"
+  }
+}

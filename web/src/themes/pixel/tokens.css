@@ -1,0 +1,160 @@
+/*
+ * Theme „pixel“ – Tech-Magazin: Purpur, kräftige Sans-Serif-Überschriften,
+ * eckige Formen, dichtes Raster.
+ */
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('./fonts/montserrat-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('./fonts/montserrat-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('./fonts/roboto-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('./fonts/roboto-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('./fonts/roboto-latin-wght-italic.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Ersatzschriften mit angepassten Metriken → weniger Layout-Verschiebung beim Font-Swap */
+@font-face {
+  font-family: 'Montserrat Fallback';
+  src: local('Arial');
+  size-adjust: 112%;
+  ascent-override: 85%;
+  descent-override: 22%;
+}
+@font-face {
+  font-family: 'Roboto Fallback';
+  src: local('Arial');
+  size-adjust: 100%;
+  ascent-override: 93%;
+  descent-override: 24%;
+}
+
+:root {
+  /* Farben – Purpur (Farbton ~285°) */
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f7f2f9;
+  --color-text: #1c1520;
+  --color-heading: #160f1a;
+  --color-text-muted: #5d5464;
+  --color-border: #e8e0ec;
+  --color-border-strong: #c9bccf;
+  --color-primary: #6a1b9a;
+  --color-primary-strong: #4e1272;
+  --color-on-primary: #ffffff;
+  --color-accent-soft: #f3e8f8;
+  --color-link: #6a1b9a;
+  --color-link-hover: #4e1272;
+  --color-kicker: #6a1b9a;
+  --color-focus: #9c27b0;
+  --color-rating: #e0a100;
+  --color-topbar: #2a0a3a;
+  --color-topbar-text: #f3e8f8;
+  --color-short-answer-bg: #f7f2f9;
+  --color-cta-bg: #2a0a3a;
+  --color-cta-text: #ffffff;
+  --color-cta-button-bg: #ffffff;
+  --color-cta-button-text: #2a0a3a;
+  --color-footer-bg: #1a0824;
+  --color-footer-text: #d9cde0;
+  --color-footer-heading: #ffffff;
+  --color-info: #1f6fb2;
+  --color-info-bg: #eef5fb;
+  --color-success: #1e7d45;
+  --color-success-bg: #edf7f1;
+  --color-warning: #a35a00;
+  --color-warning-bg: #fdf4e7;
+  --color-danger: #b42323;
+
+  /* Typografie */
+  --font-heading: 'Montserrat', 'Montserrat Fallback', system-ui, sans-serif;
+  --font-body: 'Roboto', 'Roboto Fallback', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --weight-heading: 800;
+  --weight-bold: 700;
+  --weight-lead: 500;
+  --heading-letter-spacing: -0.015em;
+  --kicker-transform: uppercase;
+  --kicker-letter-spacing: 0.08em;
+  --button-transform: uppercase;
+  --button-letter-spacing: 0.04em;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-prose: 1.0625rem;
+  --text-lead: 1.125rem;
+  --text-lg: 1.1875rem;
+  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.25rem + 1vw, 1.875rem);
+  --text-3xl: clamp(1.75rem, 1.4rem + 1.6vw, 2.375rem);
+  --text-4xl: clamp(2rem, 1.5rem + 2.2vw, 2.875rem);
+  --leading-tight: 1.18;
+  --leading-body: 1.65;
+
+  /* Abstände */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-section: clamp(2.5rem, 2rem + 2vw, 4rem);
+  --gutter: 1rem;
+
+  /* Formen */
+  --radius-sm: 2px;
+  --radius: 0;
+  --radius-lg: 0;
+  --radius-button: 0;
+  --border-width: 1px;
+  --shadow-card: none;
+
+  /* Breiten */
+  --container: 76rem;
+  --measure: 46rem;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: 1.5rem;
+  }
+}

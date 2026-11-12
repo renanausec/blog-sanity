@@ -1,0 +1,64 @@
+---
+import SanityImage from '../ui/SanityImage.astro'
+import { isExternal, linkHref } from '../../lib/i18n'
+import type { LandingSection, LocaleId } from '../../lib/types'
+
+interface Props {
+  section: Extract<LandingSection, { _type: 'heroSection' }>
+  lang: LocaleId
+}
+const { section, lang } = Astro.props
+const href = linkHref(section.link, lang)
+---
+
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__text">
+      {section.eyebrow && <p class="kicker">{section.eyebrow}</p>}
+      <h1>{section.title}</h1>
+      {section.text && <p class="hero__lead">{section.text}</p>}
+      {
+        href && section.link && (
+          <a class="button" href={href} rel={isExternal(href) ? 'noopener' : undefined}>
+            {section.link.label}
+          </a>
+        )
+      }
+    </div>
+    {
+      section.image?.asset && (
+        <SanityImage image={section.image} widths={[480, 800, 1200]} sizes="(min-width: 64rem) 36rem, 100vw" priority class="hero__img" />
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: var(--space-section);
+    background: var(--color-surface-alt);
+  }
+  .hero__inner {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .hero__inner:has(.hero__img) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .hero__text {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+    max-width: var(--measure);
+  }
+  .hero__lead {
+    font-size: var(--text-lead);
+  }
+  .hero :global(.hero__img) {
+    width: 100%;
+    border-radius: var(--radius-lg);
+  }
+</style>

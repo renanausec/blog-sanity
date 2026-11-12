@@ -1,0 +1,112 @@
+---
+/** Rangliste eines Vergleichs: nummerierte Einträge mit Kurzfazit, Bewertung, Vor-/Nachteilen */
+import SanityImage from '../ui/SanityImage.astro'
+import Rating from '../ui/Rating.astro'
+import ProsCons from './blocks/ProsCons.astro'
+import { refHref, t } from '../../lib/i18n'
+import type { ComparisonItem, LocaleId } from '../../lib/types'
+
+interface Props {
+  items: ComparisonItem[]
+  lang: LocaleId
+}
+const { items, lang } = Astro.props
+const s = t(lang)
+---
+
+<section class="ranking" aria-labelledby="ranking-title">
+  <h2 id="ranking-title">{s.ranking}</h2>
+  <ol class="ranking__list">
+    {
+      items.map((item, i) => {
+        const reviewHref = refHref(item.review, lang)
+        return (
+          <li class="ranking__item" id={item._key}>
+            <div class="ranking__head">
+              <span class="ranking__pos" aria-hidden="true">
+                {i + 1}
+              </span>
+              {item.image?.asset && (
+                <SanityImage image={item.image} widths={[160]} sizes="80px" class="ranking__logo" />
+              )}
+              <div>
+                {item.badge && <p class="kicker">{item.badge}</p>}
+                <h3>{item.name}</h3>
+                {typeof item.rating === 'number' && <Rating value={item.rating} lang={lang} />}
+              </div>
+            </div>
+            <p>{item.summary}</p>
+            {((item.pros?.length ?? 0) > 0 || (item.cons?.length ?? 0) > 0) && (
+              <ProsCons pros={item.pros} cons={item.cons} headingLevel={4} />
+            )}
+            {(reviewHref || item.url) && (
+              <p class="ranking__links">
+                {reviewHref && (
+                  <a class="button" href={reviewHref}>
+                    {s.toReview}
+                  </a>
+                )}
+                {item.url && (
+                  <a class="button button--ghost" href={item.url} rel="noopener nofollow">
+                    {s.visitWebsite}
+                  </a>
+                )}
+              </p>
+            )}
+          </li>
+        )
+      })
+    }
+  </ol>
+</section>
+
+<style>
+  .ranking h2 {
+    margin-bottom: var(--space-5);
+  }
+  .ranking__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .ranking__item {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+  }
+  .ranking__head {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+  }
+  .ranking__head h3 {
+    font-size: var(--text-xl);
+  }
+  .ranking__pos {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: var(--font-heading);
+    font-weight: var(--weight-heading);
+    border-radius: var(--radius-button);
+  }
+  .ranking__item :global(.ranking__logo) {
+    width: 64px;
+    height: auto;
+  }
+  .ranking__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+</style>

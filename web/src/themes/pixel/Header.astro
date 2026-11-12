@@ -1,0 +1,173 @@
+---
+/**
+ * Pixel-Header: dunkle Infoleiste (Claim + Sprache), Wortmarke, Rubrikenleiste.
+ * Die Navigation scrollt auf kleinen Bildschirmen horizontal – kein JavaScript nötig.
+ */
+import SanityImage from '../../components/ui/SanityImage.astro'
+import { t } from '../../lib/i18n'
+import type { HeaderProps } from '../types'
+
+type Props = HeaderProps
+const { lang, siteName, homeHref, logo, tagline, nav, languages } = Astro.props
+const s = t(lang)
+---
+
+<header class="site-header">
+  <div class="topbar">
+    <div class="container topbar__inner">
+      <p class="topbar__tagline">{tagline}</p>
+      <nav aria-label={s.language}>
+        <ul class="lang-switch">
+          {
+            languages.map((l) => (
+              <li>
+                {l.current ? (
+                  <span aria-current="true" lang={l.lang}>{l.lang.toUpperCase()}</span>
+                ) : (
+                  <a href={l.href} hreflang={l.lang} lang={l.lang} title={l.label}>
+                    {l.lang.toUpperCase()}
+                  </a>
+                )}
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <div class="container brand">
+    <a class="brand__link" href={homeHref} aria-label={`${siteName} – ${s.home}`}>
+      {
+        logo?.asset ? (
+          <SanityImage image={logo} widths={[320]} sizes="160px" alt={siteName} priority class="brand__logo" />
+        ) : (
+          <span class="wordmark" aria-hidden="true">{siteName.toLowerCase()}<span class="wordmark__dot">.</span></span>
+        )
+      }
+    </a>
+  </div>
+
+  <nav class="mainnav" aria-label={s.mainNav}>
+    <div class="container">
+      <ul class="mainnav__list">
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={item.current ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .topbar {
+    background: var(--color-topbar);
+    color: var(--color-topbar-text);
+    font-size: var(--text-xs);
+  }
+  .topbar__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 2.25rem;
+  }
+  .topbar__tagline {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lang-switch {
+    display: flex;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-heading);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.06em;
+  }
+  .lang-switch a,
+  .lang-switch span {
+    display: inline-block;
+    padding: var(--space-2) var(--space-2);
+    color: inherit;
+    text-decoration: none;
+  }
+  .lang-switch span {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .lang-switch a:hover {
+    text-decoration: underline;
+  }
+  .lang-switch :focus-visible {
+    outline-color: var(--color-topbar-text);
+  }
+
+  .brand {
+    padding-block: var(--space-5);
+  }
+  .brand__link {
+    display: inline-block;
+    text-decoration: none;
+  }
+  .brand__link :global(img) {
+    height: 2.5rem;
+    width: auto;
+  }
+  .wordmark {
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: clamp(1.9rem, 1.5rem + 1.6vw, 2.6rem);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--color-heading);
+  }
+  .wordmark__dot {
+    color: var(--color-primary);
+  }
+
+  .mainnav {
+    border-top: var(--border-width) solid var(--color-border);
+    border-bottom: 3px solid var(--color-primary);
+  }
+  .mainnav__list {
+    display: flex;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mainnav__list::-webkit-scrollbar {
+    display: none;
+  }
+  .mainnav a {
+    display: block;
+    padding: var(--space-3) var(--space-3);
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    color: var(--color-heading);
+    text-decoration: none;
+  }
+  .mainnav a:hover,
+  .mainnav a[aria-current='page'] {
+    color: var(--color-primary);
+    box-shadow: inset 0 -3px 0 var(--color-primary);
+  }
+  .mainnav li:first-child a {
+    padding-left: 0;
+  }
+</style>

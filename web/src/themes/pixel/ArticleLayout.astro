@@ -1,0 +1,102 @@
+---
+/**
+ * Pixel-Artikelgerüst: Kopf links ausgerichtet, breites Titelbild,
+ * darunter Text + seitliche Leiste (Inhaltsverzeichnis) ab Desktop.
+ *
+ * Slots: breadcrumbs, meta, lead, aside, default (Text), after
+ */
+import SanityImage from '../../components/ui/SanityImage.astro'
+import type { ArticleLayoutProps } from '../types'
+
+type Props = ArticleLayoutProps
+const { title, kicker, image, hasAside = false } = Astro.props
+const caption = image?.caption || image?.credit
+---
+
+<article class="container article">
+  <header class="article__header">
+    <slot name="breadcrumbs" />
+    {kicker && <a class="kicker" href={kicker.href}>{kicker.label}</a>}
+    <h1>{title}</h1>
+    <slot name="meta" />
+    <slot name="lead" />
+  </header>
+
+  {
+    image?.asset && (
+      <figure class="article__image figure">
+        <SanityImage
+          image={image}
+          widths={[480, 800, 1200, 1600]}
+          sizes="(min-width: 76rem) 76rem, 100vw"
+          aspect={16 / 9}
+          priority
+        />
+        {caption && (
+          <figcaption>
+            {image?.caption}
+            {image?.credit && <span> ({image.credit})</span>}
+          </figcaption>
+        )}
+      </figure>
+    )
+  }
+
+  <div class:list={['article__columns', { 'has-aside': hasAside && Astro.slots.has('aside') }]}>
+    <div class="article__main">
+      <slot />
+    </div>
+    {
+      hasAside && Astro.slots.has('aside') && (
+        <aside class="article__aside">
+          <slot name="aside" />
+        </aside>
+      )
+    }
+  </div>
+
+  <slot name="after" />
+</article>
+
+<style>
+  .article {
+    padding-top: var(--space-5);
+  }
+  .article__header {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 56rem;
+  }
+  .article__header h1 {
+    font-size: var(--text-4xl);
+  }
+  .article__image {
+    margin-block: var(--space-6) 0;
+  }
+  .article__columns {
+    display: grid;
+    gap: var(--space-7);
+    margin-top: var(--space-7);
+  }
+  @media (min-width: 64rem) {
+    .article__columns.has-aside {
+      grid-template-columns: minmax(0, 1fr) 17rem;
+    }
+    .article__aside {
+      position: sticky;
+      top: var(--space-5);
+      align-self: start;
+    }
+  }
+  @media (max-width: 63.99rem) {
+    .article__aside {
+      order: -1;
+    }
+  }
+  .article__main {
+    min-width: 0;
+    display: grid;
+    gap: var(--space-7);
+    align-content: start;
+  }
+</style>

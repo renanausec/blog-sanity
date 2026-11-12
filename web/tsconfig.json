@@ -1,0 +1,11 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*", "../site.config.ts", "../shared/**/*.ts"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@theme/*": ["./src/themes/pixel/*"]
+    }
+  }
+}

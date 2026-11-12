@@ -1,0 +1,59 @@
+---
+import SanityImage from './SanityImage.astro'
+import { docPath } from '../../../../shared/routing'
+import { pick, t } from '../../lib/i18n'
+import type { Author, LocaleId } from '../../lib/types'
+
+interface Props {
+  authors: Author[]
+  lang: LocaleId
+}
+const { authors, lang } = Astro.props
+---
+
+{
+  authors.map((a) => (
+    <section class="author-box" aria-label={`${t(lang).author}: ${a.name}`}>
+      {a.image?.asset && (
+        <SanityImage image={a.image} widths={[160]} sizes="80px" aspect={1} class="author-box__img" decorative />
+      )}
+      <div>
+        <p class="author-box__name">
+          <a href={docPath('author', lang, a.slug)}>{a.name}</a>
+        </p>
+        {pick(a.jobTitle, lang) && <p class="meta">{pick(a.jobTitle, lang)}</p>}
+        {pick(a.bio, lang) && <p class="author-box__bio">{pick(a.bio, lang)}</p>}
+      </div>
+    </section>
+  ))
+}
+
+<style>
+  .author-box {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+    align-items: start;
+    padding: var(--space-5);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius);
+  }
+  .author-box :global(.author-box__img) {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .author-box__name {
+    font-family: var(--font-heading);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-lg);
+  }
+  .author-box__name a {
+    color: var(--color-heading);
+  }
+  .author-box__bio {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+  }
+</style>

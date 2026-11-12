@@ -1,0 +1,38 @@
+---
+/** FAQ-Akkordeon mit <details>/<summary>: tastaturbedienbar, ohne JavaScript */
+import RichText from '../content/RichText.astro'
+import { t } from '../../lib/i18n'
+import type { FaqItem, LocaleId } from '../../lib/types'
+
+interface Props {
+  items: FaqItem[] | undefined
+  lang: LocaleId
+  title?: string
+  id?: string
+}
+const { items = [], lang, title, id = 'faq' } = Astro.props
+---
+
+{
+  items.length > 0 && (
+    <section class="faq" aria-labelledby={`${id}-title`}>
+      <h2 id={`${id}-title`}>{title || t(lang).faq}</h2>
+      <div class="faq__list">
+        {items.map((item, i) => (
+          <details class="faq__item" open={i === 0}>
+            <summary>{item.question}</summary>
+            <div class="faq__answer">
+              <RichText value={item.answer} prose={false} />
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .faq h2 {
+    margin-bottom: var(--space-4);
+  }
+</style>

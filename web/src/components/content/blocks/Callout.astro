@@ -1,0 +1,16 @@
+---
+import type { TypedObjectProps } from 'astro-portabletext/types'
+import RichText from '../RichText.astro'
+import { langFromUrl, t } from '../../../lib/i18n'
+import type { PortableTextValue } from '../../../lib/types'
+
+type Props = TypedObjectProps
+const node = Astro.props.node as unknown as { tone?: string; title?: string; body?: PortableTextValue }
+const tone = node.tone ?? 'info'
+const label = node.title || t(langFromUrl(Astro.url)).callout[tone]
+---
+
+<aside class:list={['callout', `callout--${tone}`]}>
+  <p class="callout__title">{label}</p>
+  <div><RichText value={node.body} prose={false} /></div>
+</aside>

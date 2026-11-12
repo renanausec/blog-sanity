@@ -1,0 +1,21 @@
+---
+import { t } from '../../lib/i18n'
+import type { Crumb } from '../../lib/jsonld'
+import type { LocaleId } from '../../lib/types'
+
+interface Props {
+  crumbs: Crumb[]
+  lang: LocaleId
+}
+const { crumbs, lang } = Astro.props
+---
+
+<nav class="breadcrumbs" aria-label={t(lang).breadcrumb}>
+  <ol>
+    {
+      crumbs.map((c, i) => (
+        <li>{i === crumbs.length - 1 ? <span aria-current="page">{c.name}</span> : <a href={c.path}>{c.name}</a>}</li>
+      ))
+    }
+  </ol>
+</nav>

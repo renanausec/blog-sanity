@@ -1,0 +1,11 @@
+---
+import type { Mark, MarkProps } from 'astro-portabletext/types'
+import { langFromUrl, refHref } from '../../../lib/i18n'
+import type { LinkRef } from '../../../lib/types'
+
+type Props = MarkProps<{ target?: LinkRef }>
+const { node } = Astro.props as { node: Mark<{ target?: LinkRef }> }
+const href = refHref(node.markDef.target, langFromUrl(Astro.url))
+---
+
+{href ? <a href={href}><slot /></a> : <slot />}

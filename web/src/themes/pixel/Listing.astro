@@ -1,0 +1,70 @@
+---
+/**
+ * Pixel-Liste. Startseite: Aufmacher + „Im Fokus“-Spalte + Raster. Archiv: 3er-Raster.
+ */
+import Card from './Card.astro'
+import { t } from '../../lib/i18n'
+import type { ListingProps } from '../types'
+
+type Props = ListingProps
+const { items, lang, variant } = Astro.props
+const s = t(lang)
+const isHome = variant === 'home' && items.length > 2
+const lead = isHome ? items[0] : undefined
+const side = isHome ? items.slice(1, 4) : []
+const rest = isHome ? items.slice(4) : items
+---
+
+{
+  lead && (
+    <section class="top" aria-label={s.featured}>
+      <div class="top__lead">
+        <Card item={lead} variant="lead" headingLevel={2} priority />
+      </div>
+      <div class="top__side">
+        <h2 class="section-label">{s.featured}</h2>
+        {side.map((item) => <Card item={item} variant="compact" />)}
+      </div>
+    </section>
+  )
+}
+
+{
+  rest.length > 0 && (
+    <section class="grid-section" aria-label={isHome ? s.latest : undefined}>
+      {isHome && <h2 class="section-label">{s.latest}</h2>}
+      <div class="grid">
+        {rest.map((item, i) => <Card item={item} priority={!isHome && i < 3} headingLevel={isHome ? 3 : 2} />)}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .section-label {
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-2);
+    border-bottom: 3px solid var(--color-heading);
+  }
+  .top {
+    display: grid;
+    gap: var(--space-6);
+    padding-bottom: var(--space-7);
+    margin-bottom: var(--space-7);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+  @media (min-width: 64rem) {
+    .top {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+  .grid {
+    display: grid;
+    gap: var(--space-7) var(--space-6);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    margin-top: var(--space-5);
+  }
+</style>

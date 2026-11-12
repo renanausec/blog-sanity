@@ -1,0 +1,21 @@
+---
+/** Direkte Antwort am Seitenanfang – zitierfähig für Suchmaschinen und LLMs */
+import { t } from '../../lib/i18n'
+import type { LocaleId } from '../../lib/types'
+
+interface Props {
+  text: string | undefined
+  lang: LocaleId
+  label?: string
+}
+const { text, lang, label } = Astro.props
+---
+
+{
+  text && (
+    <div class="short-answer">
+      <strong class="kicker short-answer__label">{label ?? t(lang).shortAnswer}</strong>
+      <p>{text}</p>
+    </div>
+  )
+}

@@ -1,0 +1,55 @@
+---
+/** Vor- und Nachteile. Auch direkt nutzbar (Review, Vergleich) über die Props pros/cons. */
+import { langFromUrl, t } from '../../../lib/i18n'
+
+interface Props {
+  node?: unknown
+  pros?: string[]
+  cons?: string[]
+  title?: string
+  headingLevel?: 2 | 3 | 4
+}
+
+const node = (Astro.props.node ?? {}) as { title?: string; pros?: string[]; cons?: string[] }
+const pros = Astro.props.pros ?? node.pros ?? []
+const cons = Astro.props.cons ?? node.cons ?? []
+const title = Astro.props.title ?? node.title
+const s = t(langFromUrl(Astro.url))
+const H = `h${Astro.props.headingLevel ?? (title ? 4 : 3)}` as 'h3'
+---
+
+<div class="pros-cons-block">
+  {title && <h3 class="pros-cons-block__title">{title}</h3>}
+  <div class="pros-cons">
+    {
+      pros.length > 0 && (
+        <div class="pros-cons__col pros-cons__col--pro">
+          <H class="pros-cons__heading">{s.pros}</H>
+          <ul>
+            {pros.map((p) => (
+              <li>{p}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+    {
+      cons.length > 0 && (
+        <div class="pros-cons__col pros-cons__col--con">
+          <H class="pros-cons__heading">{s.cons}</H>
+          <ul>
+            {cons.map((c) => (
+              <li>{c}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .pros-cons-block__title {
+    margin-bottom: var(--space-3);
+  }
+</style>

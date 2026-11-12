@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import { docPath } from '../../../shared/routing'
+import { editorialFor, loadContent } from '../lib/content'
+import { t } from '../lib/i18n'
+import type { LocaleId } from '../lib/types'
+
+interface Props {
+  lang: LocaleId
+}
+const { lang } = Astro.props
+const s = t(lang)
+const content = await loadContent()
+const latest = editorialFor(content, lang).slice(0, 5)
+---
+
+<BaseLayout lang={lang} title={s.notFoundTitle} noIndex>
+  <div class="container not-found">
+    <p class="not-found__code" aria-hidden="true">404</p>
+    <h1>{s.notFoundTitle}</h1>
+    <p>{s.notFoundText}</p>
+    <ul>
+      <li><a href={docPath('home', lang)}>{s.backHome}</a></li>
+      <li><a href={docPath('glossaryIndex', lang)}>{s.glossary}</a></li>
+      {
+        latest.map((d) => (
+          <li>
+            <a href={docPath(d._type, d.language, d.slug)}>{d.title}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found {
+    display: grid;
+    gap: var(--space-4);
+    padding-block: var(--space-section);
+    max-width: var(--measure);
+  }
+  .not-found__code {
+    font-family: var(--font-heading);
+    font-weight: var(--weight-heading);
+    font-size: clamp(4rem, 3rem + 6vw, 8rem);
+    line-height: 1;
+    color: var(--color-primary);
+  }
+  .not-found ul {
+    padding-left: 1.2em;
+    display: grid;
+    gap: var(--space-2);
+  }
+</style>

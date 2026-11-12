@@ -1,0 +1,214 @@
+---
+/**
+ * Grundgerüst jeder Seite: <head> mit SEO (Title, Description, Canonical, Robots, hreflang,
+ * Open Graph, JSON-LD), Schriften-Preload, Header und Footer des aktiven Themes.
+ */
+import '@theme/tokens.css'
+import '../styles/base.css'
+import Header from '@theme/Header.astro'
+import Footer from '@theme/Footer.astro'
+import { theme } from '@theme/theme'
+import { getImage } from 'astro:assets'
+import { siteConfig, type LocaleId } from '../../../site.config'
+import { absoluteUrl, docPath, paginatedPath } from '../../../shared/routing'
+import { loadContent } from '../lib/content'
+import { categoryPath, linkHref, localeInfo, pick, refHref, refLabel, t } from '../lib/i18n'
+import { absoluteImage, hasImage, sourceUrl } from '../lib/images'
+import { compact, organizationNode, websiteNode } from '../lib/jsonld'
+import { xDefault, type Route } from '../lib/routes'
+import type { SanityImage, Seo } from '../lib/types'
+import type { NavLink, LanguageLink } from '../themes/types'
+
+interface Props {
+  lang: LocaleId
+  title: string
+  description?: string
+  route?: Route
+  seo?: Seo
+  image?: SanityImage
+  ogType?: 'website' | 'article'
+  article?: { publishedTime?: string; modifiedTime?: string; section?: string; authors?: string[] }
+  jsonLd?: (Record<string, unknown> | undefined)[]
+  noIndex?: boolean
+  /** true = Seitentitel ohne angehängten Blognamen (Startseite) */
+  isHome?: boolean
+}
+
+const { lang, title, description, route, seo, image, ogType = 'website', article, jsonLd = [], isHome = false } =
+  Astro.props
+
+const { settings, categories } = await loadContent()
+const s = t(lang)
+const siteName = settings.siteName || siteConfig.name
+const locale = localeInfo(lang)
+
+// ── Titel, Beschreibung, Robots ─────────────────────────────
+const baseTitle = seo?.metaTitle || title
+const fullTitle = isHome && !seo?.metaTitle ? baseTitle : `${baseTitle} | ${siteName}`
+const metaDescription = (seo?.metaDescription || description || siteConfig.description[lang]).trim()
+const isPreview = !!process.env.CF_PAGES_BRANCH && process.env.CF_PAGES_BRANCH !== 'main'
+const noIndex = Astro.props.noIndex || seo?.noIndex || route?.noIndex || isPreview
+const noFollow = seo?.noFollow || isPreview
+const robots = [noIndex ? 'noindex' : 'index', noFollow ? 'nofollow' : 'follow'].join(', ')
+const canonical = seo?.canonical || (route ? absoluteUrl(route.path) : undefined)
+
+// ── hreflang (nur indexierbare, wechselseitige Sprachversionen) ─────
+const alternates = route && !noIndex ? Object.entries(route.alternates) : []
+const hreflangs =
+  alternates.length > 1
+    ? [
+        ...alternates.map(([l, p]) => ({ hreflang: localeInfo(l as LocaleId).hreflang, href: absoluteUrl(p!) })),
+        ...(route && xDefault(route) ? [{ hreflang: 'x-default', href: absoluteUrl(xDefault(route)!) }] : []),
+      ]
+    : []
+
+// ── Paginierung (rel prev/next) ─────────────────────────────
+const list = route && 'list' in route.data ? route.data.list : undefined
+
+// ── Open Graph ──────────────────────────────────────────────
+const ogSource = [seo?.ogImage, image, settings.defaultOgImage].find((i) => hasImage(i))
+const og = await absoluteImage(ogSource)
+const logo = hasImage(settings.logo) ? await absoluteImage(settings.logo, 600, undefined) : undefined
+
+// ── Favicon ─────────────────────────────────────────────────
+let favicons: { rel: string; href: string; sizes?: string; type?: string }[] = [
+  { rel: 'icon', href: theme.favicon, type: 'image/svg+xml' },
+]
+if (hasImage(settings.favicon)) {
+  const src = sourceUrl(settings.favicon, 512, 1)
+  const [i32, i180] = await Promise.all([
+    getImage({ src: src.url, width: 32, height: 32, format: 'png' }),
+    getImage({ src: src.url, width: 180, height: 180, format: 'png' }),
+  ])
+  favicons = [
+    { rel: 'icon', href: i32.src, sizes: '32x32', type: 'image/png' },
+    { rel: 'apple-touch-icon', href: i180.src, sizes: '180x180' },
+  ]
+}
+
+// ── Navigation ──────────────────────────────────────────────
+const current = Astro.url.pathname
+const isCurrent = (href: string) => href !== docPath('home', lang) && current.startsWith(href)
+const manualNav: NavLink[] = (settings.mainNav?.[lang] ?? [])
+  .map((l) => ({ label: l.label, href: linkHref(l, lang) ?? '' }))
+  .filter((l) => l.href)
+const categoryNav: NavLink[] = categories
+  .filter((c) => !c.noIndex && pick(c.slug, lang)?.current)
+  .map((c) => ({ label: pick(c.title, lang) ?? '', href: categoryPath(c, lang) }))
+const nav: NavLink[] = [
+  ...(settings.showCategoriesInNav !== false ? categoryNav : []),
+  ...manualNav,
+  { label: s.glossary, href: docPath('glossaryIndex', lang) },
+].map((l) => ({ ...l, current: isCurrent(l.href) }))
+
+const languages: LanguageLink[] = siteConfig.locales.map((l) => {
+  const translated = route?.alternates[l.id]
+  return {
+    lang: l.id,
+    label: t(l.id).switchLanguage,
+    href: translated ?? docPath('home', l.id),
+    current: l.id === lang,
+    isTranslation: !!translated,
+  }
+})
+
+const legalPages = settings.legalPages?.[lang] ?? {}
+const legal: NavLink[] = (['contact', 'editorialPolicy', 'imprint', 'privacy'] as const)
+  .map((key) => ({ label: refLabel(legalPages[key], lang) ?? s.legal[key], href: refHref(legalPages[key], lang) ?? '' }))
+  .filter((l) => l.href)
+const footerNav: NavLink[] = (settings.footerNav?.[lang] ?? [])
+  .map((l) => ({ label: l.label, href: linkHref(l, lang) ?? '' }))
+  .filter((l) => l.href)
+const social: NavLink[] = Object.entries(siteConfig.social)
+  .filter(([, url]) => url)
+  .map(([name, url]) => ({ label: name.charAt(0).toUpperCase() + name.slice(1), href: url }))
+
+const rssHref = `${docPath('home', lang)}rss.xml`
+
+// ── JSON-LD ─────────────────────────────────────────────────
+const graph = compact({
+  '@context': 'https://schema.org',
+  '@graph': [organizationNode(settings, logo?.url), websiteNode(settings, lang), ...jsonLd.filter(Boolean)],
+})
+
+// ── AdSense (nur wenn in site.config.ts UND in Sanity aktiviert) ─────
+const adsenseClient =
+  siteConfig.adsense.enabled && settings.adsense?.enabled ? settings.adsense.clientId : undefined
+---
+
+<!doctype html>
+<html lang={locale.hreflang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={metaDescription} />
+    <meta name="robots" content={robots} />
+    {canonical && !noIndex && <link rel="canonical" href={canonical} />}
+    {hreflangs.map((h) => <link rel="alternate" hreflang={h.hreflang} href={h.href} />)}
+    {list && list.page > 1 && <link rel="prev" href={absoluteUrl(paginatedPath(list.basePath, lang, list.page - 1))} />}
+    {list && list.page < list.totalPages && <link rel="next" href={absoluteUrl(paginatedPath(list.basePath, lang, list.page + 1))} />}
+
+    {theme.fontPreloads.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
+    {favicons.map((f) => <link rel={f.rel} href={f.href} sizes={f.sizes} type={f.type} />)}
+    <meta name="theme-color" content={theme.themeColor} />
+    <link rel="alternate" type="application/rss+xml" title={`${siteName} – RSS`} href={absoluteUrl(rssHref)} />
+
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content={locale.ogLocale} />
+    {
+      siteConfig.locales
+        .filter((l) => l.id !== lang && route?.alternates[l.id])
+        .map((l) => <meta property="og:locale:alternate" content={l.ogLocale} />)
+    }
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={seo?.ogTitle || baseTitle} />
+    <meta property="og:description" content={seo?.ogDescription || metaDescription} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {og && <meta property="og:image" content={og.url} />}
+    {og && <meta property="og:image:width" content={String(og.width)} />}
+    {og && <meta property="og:image:height" content={String(og.height)} />}
+    {ogSource?.alt && <meta property="og:image:alt" content={ogSource.alt} />}
+    <meta name="twitter:card" content={og ? 'summary_large_image' : 'summary'} />
+    {article?.publishedTime && <meta property="article:published_time" content={article.publishedTime} />}
+    {article?.modifiedTime && <meta property="article:modified_time" content={article.modifiedTime} />}
+    {article?.section && <meta property="article:section" content={article.section} />}
+
+    <script type="application/ld+json" set:html={JSON.stringify(graph).replace(/</g, '\\u003c')} />
+    {
+      adsenseClient && (
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+          crossorigin="anonymous"
+        />
+      )
+    }
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{s.skipToContent}</a>
+    <Header
+      lang={lang}
+      siteName={siteName}
+      homeHref={docPath('home', lang)}
+      logo={settings.logo}
+      tagline={pick(settings.tagline, lang)}
+      nav={nav}
+      languages={languages}
+    />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer
+      lang={lang}
+      siteName={siteName}
+      homeHref={docPath('home', lang)}
+      text={pick(settings.footerText, lang) ?? siteConfig.description[lang]}
+      nav={footerNav}
+      categories={categoryNav}
+      legal={legal}
+      social={social}
+      rssHref={rssHref}
+    />
+  </body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/postbuild.mjs && node scripts/check-leaks.mjs && node scripts/check-hreflang.mjs",
+    "preview": "astro preview",
+    "check": "astro check",
+    "check:leaks": "node scripts/check-leaks.mjs"
+  },
+  "dependencies": {
+    "@sanity/astro": "^3.6.1",
+    "@sanity/client": "^8.15.1",
+    "@sanity/image-url": "^2.1.1",
+    "astro": "^7.4.11",
+    "astro-portabletext": "^1.0.1",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^6.0.0"
+  }
+}

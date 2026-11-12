@@ -1,0 +1,31 @@
+---
+import { isExternal, linkHref } from '../../lib/i18n'
+import type { LandingSection, LocaleId } from '../../lib/types'
+
+interface Props {
+  section: Extract<LandingSection, { _type: 'ctaSection' }>
+  lang: LocaleId
+}
+const { section, lang } = Astro.props
+const href = linkHref(section.link, lang)
+---
+
+<section class="container cta-section">
+  <div class="cta-box">
+    <h2>{section.title}</h2>
+    {section.text && <p>{section.text}</p>}
+    {
+      href && (
+        <a class="button" href={href} rel={isExternal(href) ? 'noopener' : undefined}>
+          {section.link.label}
+        </a>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .cta-section {
+    padding-top: var(--space-section);
+  }
+</style>

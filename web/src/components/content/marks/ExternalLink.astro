@@ -1,0 +1,12 @@
+---
+import type { Mark, MarkProps } from 'astro-portabletext/types'
+import { isExternal } from '../../../lib/i18n'
+
+type Props = MarkProps<{ href?: string; nofollow?: boolean }>
+const { node } = Astro.props as { node: Mark<{ href?: string; nofollow?: boolean }> }
+const href = node.markDef.href
+const external = isExternal(href)
+const rel = [external ? 'noopener' : '', node.markDef.nofollow ? 'nofollow sponsored' : ''].filter(Boolean).join(' ')
+---
+
+<a href={href} rel={rel || undefined}><slot /></a>

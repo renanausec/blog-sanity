@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import ArticleLayout from '@theme/ArticleLayout.astro'
+import Breadcrumbs from '../components/ui/Breadcrumbs.astro'
+import ShortAnswer from '../components/ui/ShortAnswer.astro'
+import Faq from '../components/ui/Faq.astro'
+import RichText from '../components/content/RichText.astro'
+import { docPath } from '../../../shared/routing'
+import { refHref, t } from '../lib/i18n'
+import { breadcrumbNode, definedTermNode, faqNode, webPageNode, type Crumb } from '../lib/jsonld'
+import type { Route } from '../lib/routes'
+import type { GlossaryTerm } from '../lib/types'
+
+interface Props {
+  route: Route
+}
+const { route } = Astro.props
+const term = (route.data as { doc: GlossaryTerm }).doc
+const lang = term.language
+const s = t(lang)
+const indexPath = docPath('glossaryIndex', lang)
+const crumbs: Crumb[] = [
+  { name: s.home, path: docPath('home', lang) },
+  { name: s.glossary, path: indexPath },
+  { name: term.title, path: route.path },
+]
+const definitionLabel = lang === 'de' ? `Was ist ${term.title}?` : `What is ${term.title}?`
+const jsonLd = [
+  webPageNode({
+    path: route.path,
+    lang,
+    title: term.title,
+    description: term.shortDefinition,
+    dateModified: term.updatedAt ?? term._updatedAt,
+    hasBreadcrumb: true,
+  }),
+  breadcrumbNode(route.path, crumbs),
+  definedTermNode(term),
+  faqNode(route.path, term.faq ?? []),
+]
+const related = (term.relatedTerms ?? [])
+  .map((r) => ({ label: r.title, href: refHref(r, lang), def: r.shortDefinition }))
+  .filter((r) => r.href)
+---
+
+<BaseLayout lang={lang} title={term.title} description={term.shortDefinition} route={route} seo={term.seo} jsonLd={jsonLd}>
+  <ArticleLayout lang={lang} title={term.title} kicker={{ label: s.glossary, href: indexPath }}>
+    <Breadcrumbs slot="breadcrumbs" crumbs={crumbs} lang={lang} />
+    <ShortAnswer slot="lead" text={term.shortDefinition} lang={lang} label={definitionLabel} />
+
+    <RichText value={term.body} />
+
+    {
+      related.length > 0 && (
+        <section class="related-terms" aria-labelledby="related-terms-title">
+          <h2 id="related-terms-title">{s.relatedTerms}</h2>
+          <ul>
+            {related.map((r) => (
+              <li>
+                <a href={r.href}>{r.label}</a>
+                {r.def && <span class="meta"> – {r.def}</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <Faq items={term.faq} lang={lang} />
+  </ArticleLayout>
+</BaseLayout>
+
+<style>
+  .related-terms h2 {
+    margin-bottom: var(--space-3);
+  }
+  .related-terms ul {
+    margin: 0;
+    padding-left: 1.2em;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .related-terms a {
+    font-weight: var(--weight-bold);
+  }
+</style>

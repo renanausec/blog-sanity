@@ -1,0 +1,38 @@
+---
+/** Inhaltsverzeichnis aus den H2 des Fließtexts (ab 3 Überschriften) */
+import { toPlainText } from 'astro-portabletext'
+import { slugify, t } from '../../lib/i18n'
+import type { LocaleId, PortableTextValue } from '../../lib/types'
+
+interface Props {
+  body: PortableTextValue | undefined
+  lang: LocaleId
+  extra?: { id: string; label: string }[]
+}
+const { body = [], lang, extra = [] } = Astro.props
+const headings = body
+  .filter((b) => b._type === 'block' && b.style === 'h2')
+  .map((b) => {
+    const label = toPlainText(b as never)
+    return { id: slugify(label), label }
+  })
+  .concat(extra)
+  .filter((h) => h.id)
+---
+
+{
+  headings.length >= 3 && (
+    <nav class="toc" aria-labelledby="toc-title">
+      <p class="toc__title" id="toc-title">
+        {t(lang).toc}
+      </p>
+      <ol>
+        {headings.map((h) => (
+          <li>
+            <a href={`#${h.id}`}>{h.label}</a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}

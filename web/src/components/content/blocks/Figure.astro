@@ -1,0 +1,22 @@
+---
+import type { TypedObjectProps } from 'astro-portabletext/types'
+import SanityImage from '../../ui/SanityImage.astro'
+import type { SanityImage as Img } from '../../../lib/types'
+
+type Props = TypedObjectProps
+const image = Astro.props.node as unknown as Img
+---
+
+{
+  image.asset && (
+    <figure class="figure">
+      <SanityImage image={image} widths={[400, 800, 1200]} sizes="(min-width: 46rem) 46rem, 100vw" />
+      {(image.caption || image.credit) && (
+        <figcaption>
+          {image.caption}
+          {image.credit && <span> ({image.credit})</span>}
+        </figcaption>
+      )}
+    </figure>
+  )
+}

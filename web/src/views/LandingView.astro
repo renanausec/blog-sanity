@@ -1,0 +1,70 @@
+---
+/** Landingpage aus modularen Abschnitten */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Hero from '../components/sections/Hero.astro'
+import TextSection from '../components/sections/TextSection.astro'
+import Benefits from '../components/sections/Benefits.astro'
+import CtaSection from '../components/sections/CtaSection.astro'
+import Faq from '../components/ui/Faq.astro'
+import { faqNode, webPageNode } from '../lib/jsonld'
+import type { Route } from '../lib/routes'
+import type { FaqItem, LandingPage } from '../lib/types'
+
+interface Props {
+  route: Route
+}
+const { route } = Astro.props
+const page = (route.data as { doc: LandingPage }).doc
+const lang = page.language
+const sections = page.sections ?? []
+const hero = sections.find((s) => s._type === 'heroSection')
+const description = hero && 'text' in hero ? hero.text : undefined
+
+// Alle FAQ-Fragen der Seite (Abschnitte + FAQ-Feld) fließen in ein FAQPage-Schema
+const allFaq: FaqItem[] = [
+  ...sections.flatMap((s) => (s._type === 'faqSection' ? s.items : [])),
+  ...(page.faq ?? []),
+]
+const jsonLd = [webPageNode({ path: route.path, lang, title: page.title, description }), faqNode(route.path, allFaq)]
+---
+
+<BaseLayout lang={lang} title={page.title} description={description} route={route} seo={page.seo} jsonLd={jsonLd}>
+  {!hero && <h1 class="container landing__title">{page.title}</h1>}
+  {
+    sections.map((section) => {
+      switch (section._type) {
+        case 'heroSection':
+          return <Hero section={section} lang={lang} />
+        case 'textSection':
+          return <TextSection section={section} />
+        case 'benefitsSection':
+          return <Benefits section={section} />
+        case 'ctaSection':
+          return <CtaSection section={section} lang={lang} />
+        case 'faqSection':
+          return (
+            <div class="container landing__faq">
+              <Faq items={section.items} lang={lang} title={section.title} id={`faq-${section._key}`} />
+            </div>
+          )
+      }
+    })
+  }
+  {
+    (page.faq?.length ?? 0) > 0 && (
+      <div class="container landing__faq">
+        <Faq items={page.faq} lang={lang} />
+      </div>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .landing__title {
+    padding-top: var(--space-6);
+  }
+  .landing__faq {
+    padding-top: var(--space-section);
+    max-width: calc(var(--measure) + 2 * var(--gutter));
+  }
+</style>

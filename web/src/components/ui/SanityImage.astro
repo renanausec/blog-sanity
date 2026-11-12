@@ -1,0 +1,57 @@
+---
+/**
+ * Responsives Bild aus Sanity (AVIF + WebP + Fallback), mit width/height gegen Layout-Verschiebungen.
+ * Pflicht-Alt-Text kommt aus Sanity; dekorative Bilder mit alt="" über `decorative`.
+ */
+import { Picture } from 'astro:assets'
+import { hasImage, isTransparent, sourceUrl } from '../../lib/images'
+import type { SanityImage } from '../../lib/types'
+
+interface Props {
+  image: SanityImage | undefined | null
+  /** Ausgabebreiten in px */
+  widths?: number[]
+  sizes?: string
+  /** Seitenverhältnis Breite/Höhe, z. B. 16/9. Leer = Original */
+  aspect?: number
+  alt?: string
+  decorative?: boolean
+  priority?: boolean
+  class?: string
+}
+
+const {
+  image,
+  widths = [400, 800, 1200],
+  sizes = '100vw',
+  aspect,
+  alt,
+  decorative = false,
+  priority = false,
+  class: className,
+} = Astro.props
+
+const valid = hasImage(image)
+const maxWidth = Math.max(...widths)
+const src = valid ? sourceUrl(image, maxWidth, aspect) : undefined
+const usableWidths = src ? widths.filter((w) => w <= src.width) : []
+---
+
+{
+  valid && src && (
+    <Picture
+      src={src.url}
+      width={src.width}
+      height={src.height}
+      widths={usableWidths.length ? usableWidths : [src.width]}
+      sizes={sizes}
+      formats={['avif', 'webp']}
+      fallbackFormat={isTransparent(image) ? 'png' : 'jpg'}
+      alt={decorative ? '' : (alt ?? image.alt ?? '')}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding="async"
+      fetchpriority={priority ? 'high' : 'auto'}
+      class={className}
+    />
+  )
+}

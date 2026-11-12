@@ -1,0 +1,157 @@
+---
+/** Glossar A–Z: Sprungleiste + Begriffe mit Kurzdefinition als <dl> */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Breadcrumbs from '../components/ui/Breadcrumbs.astro'
+import { docPath } from '../../../shared/routing'
+import { t } from '../lib/i18n'
+import { breadcrumbNode, definedTermNode, definedTermSetNode, webPageNode, type Crumb } from '../lib/jsonld'
+import type { Route } from '../lib/routes'
+import type { GlossaryTerm } from '../lib/types'
+
+interface Props {
+  route: Route
+}
+const { route } = Astro.props
+const { lang } = route
+const terms = (route.data as { terms: GlossaryTerm[] }).terms
+const s = t(lang)
+
+/** Anfangsbuchstabe, Umlaute zum Grundbuchstaben, Ziffern unter „#“ */
+const letterOf = (term: string) => {
+  const c = term.trim().charAt(0).toUpperCase().normalize('NFD').charAt(0)
+  return /[A-Z]/.test(c) ? c : '#'
+}
+const collator = new Intl.Collator(lang, { sensitivity: 'base' })
+const sorted = [...terms].sort((a, b) => collator.compare(a.title, b.title))
+const groups = new Map<string, GlossaryTerm[]>()
+for (const term of sorted) {
+  const l = letterOf(term.title)
+  groups.set(l, [...(groups.get(l) ?? []), term])
+}
+const alphabet = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
+const letters = alphabet.filter((l) => l !== '#' || groups.has('#'))
+const ordered = alphabet.filter((l) => groups.has(l))
+
+const crumbs: Crumb[] = [
+  { name: s.home, path: docPath('home', lang) },
+  { name: s.glossary, path: route.path },
+]
+const jsonLd = [
+  webPageNode({ path: route.path, lang, title: s.glossary, description: s.glossaryIntro, type: 'CollectionPage', hasBreadcrumb: true }),
+  breadcrumbNode(route.path, crumbs),
+  definedTermSetNode(lang, s.glossary, sorted),
+  ...sorted.map(definedTermNode),
+]
+---
+
+<BaseLayout lang={lang} title={s.glossary} description={s.glossaryIntro} route={route} jsonLd={jsonLd}>
+  <div class="container glossary">
+    <Breadcrumbs crumbs={crumbs} lang={lang} />
+    <header class="glossary__header">
+      <h1>{s.glossary}</h1>
+      <p class="glossary__intro">{s.glossaryIntro}</p>
+    </header>
+
+    <nav class="az" aria-label={s.glossaryJump}>
+      <ul>
+        {
+          letters.map((l) => (
+            <li>{groups.has(l) ? <a href={`#letter-${l === '#' ? 'num' : l}`}>{l}</a> : <span aria-hidden="true">{l}</span>}</li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    {
+      ordered.map((l) => (
+        <section class="glossary__group" aria-labelledby={`letter-${l === '#' ? 'num' : l}`}>
+          <h2 id={`letter-${l === '#' ? 'num' : l}`} class="glossary__letter">
+            {l}
+          </h2>
+          <dl>
+            {groups.get(l)!.map((term) => (
+              <div class="glossary__entry">
+                <dt>
+                  <a href={docPath('glossaryTerm', lang, term.slug)}>{term.title}</a>
+                </dt>
+                <dd>{term.shortDefinition}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .glossary {
+    display: grid;
+    gap: var(--space-6);
+    padding-top: var(--space-6);
+  }
+  .glossary__header {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .glossary__intro {
+    font-size: var(--text-lead);
+    color: var(--color-text-muted);
+    max-width: var(--measure);
+  }
+  .az ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .az a,
+  .az span {
+    display: grid;
+    place-items: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    font-family: var(--font-heading);
+    font-weight: var(--weight-bold);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-button);
+    text-decoration: none;
+  }
+  .az a:hover {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .az span {
+    color: var(--color-text-muted);
+    background: var(--color-surface-alt);
+  }
+  .glossary__group {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .glossary__letter {
+    font-size: var(--text-3xl);
+    color: var(--color-primary);
+    border-bottom: var(--border-width) solid var(--color-border);
+    padding-bottom: var(--space-2);
+  }
+  .glossary dl {
+    margin: 0;
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  }
+  .glossary dt {
+    font-family: var(--font-heading);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-lg);
+  }
+  .glossary dd {
+    margin: var(--space-1) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -1,0 +1,74 @@
+---
+/** Testbericht-Kasten: Produkt, Bewertung, Preis, Vor-/Nachteile, Fazit */
+import SanityImage from '../ui/SanityImage.astro'
+import Rating from '../ui/Rating.astro'
+import ProsCons from './blocks/ProsCons.astro'
+import { t } from '../../lib/i18n'
+import type { LocaleId, Review } from '../../lib/types'
+
+interface Props {
+  review: Review
+  lang: LocaleId
+}
+const { review, lang } = Astro.props
+const s = t(lang)
+const { product } = review
+---
+
+<section class="review-summary" aria-labelledby="review-summary-title">
+  <div class="review-summary__head">
+    {product.image?.asset && <SanityImage image={product.image} widths={[240]} sizes="120px" class="review-summary__img" />}
+    <div>
+      <p class="kicker">{product.brand}</p>
+      <h2 id="review-summary-title">{product.name}</h2>
+      <p class="review-summary__rating">
+        <span class="visually-hidden">{s.rating}: </span>
+        <Rating value={review.rating} lang={lang} />
+      </p>
+      {typeof product.priceFrom === 'number' && <p class="meta">{s.priceFrom(product.priceFrom)}</p>}
+    </div>
+  </div>
+
+  <ProsCons pros={review.pros} cons={review.cons} />
+
+  <div class="callout callout--key">
+    <p class="callout__title">{s.verdict}</p>
+    <p>{review.verdict}</p>
+  </div>
+
+  {
+    product.url && (
+      <p>
+        <a class="button button--ghost" href={product.url} rel="noopener nofollow">
+          {s.visitWebsite}
+        </a>
+      </p>
+    )
+  }
+</section>
+
+<style>
+  .review-summary {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+  }
+  .review-summary__head {
+    display: flex;
+    gap: var(--space-5);
+    align-items: center;
+  }
+  .review-summary__head h2 {
+    font-size: var(--text-2xl);
+  }
+  .review-summary :global(.review-summary__img) {
+    width: 96px;
+    height: auto;
+  }
+  .review-summary__rating {
+    margin-top: var(--space-2);
+    font-size: var(--text-lg);
+  }
+</style>

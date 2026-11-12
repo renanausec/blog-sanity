@@ -1,0 +1,54 @@
+---
+/** Einfache Seite (Kontakt, Redaktionelle Richtlinien, Impressum, Datenschutz …) */
+import BaseLayout from '../layouts/BaseLayout.astro'
+import ArticleLayout from '@theme/ArticleLayout.astro'
+import Breadcrumbs from '../components/ui/Breadcrumbs.astro'
+import Faq from '../components/ui/Faq.astro'
+import RichText from '../components/content/RichText.astro'
+import { docPath } from '../../../shared/routing'
+import { formatDate, t } from '../lib/i18n'
+import { breadcrumbNode, faqNode, webPageNode, type Crumb } from '../lib/jsonld'
+import type { Route } from '../lib/routes'
+import type { Page } from '../lib/types'
+
+interface Props {
+  route: Route
+}
+const { route } = Astro.props
+const page = (route.data as { doc: Page }).doc
+const lang = page.language
+const s = t(lang)
+const crumbs: Crumb[] = [
+  { name: s.home, path: docPath('home', lang) },
+  { name: page.title, path: route.path },
+]
+const jsonLd = [
+  webPageNode({ path: route.path, lang, title: page.title, description: page.intro, dateModified: page.updatedAt, hasBreadcrumb: true }),
+  breadcrumbNode(route.path, crumbs),
+  faqNode(route.path, page.faq ?? []),
+]
+---
+
+<BaseLayout lang={lang} title={page.title} description={page.intro} route={route} seo={page.seo} jsonLd={jsonLd}>
+  <ArticleLayout lang={lang} title={page.title}>
+    <Breadcrumbs slot="breadcrumbs" crumbs={crumbs} lang={lang} />
+    {page.intro && <p slot="lead" class="page-intro">{page.intro}</p>}
+    {
+      page.updatedAt && (
+        <p slot="meta" class="meta">
+          {s.updatedOn} <time datetime={page.updatedAt}>{formatDate(page.updatedAt, lang)}</time>
+        </p>
+      )
+    }
+    <RichText value={page.body} />
+    <Faq items={page.faq} lang={lang} />
+  </ArticleLayout>
+</BaseLayout>
+
+<style>
+  .page-intro {
+    font-size: var(--text-lead);
+    font-weight: var(--weight-lead);
+    max-width: var(--measure);
+  }
+</style>

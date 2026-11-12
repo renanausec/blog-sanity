@@ -1,0 +1,36 @@
+---
+/**
+ * Erzeugt ALLE Inhaltsseiten aus der Routentabelle (src/lib/routes.ts).
+ * Eine einzige Route statt vieler Dateien, weil URL-Segmente je Sprache übersetzt sind.
+ */
+import type { GetStaticPaths } from 'astro'
+import { getRoutes, type Route } from '../lib/routes'
+import ListView from '../views/ListView.astro'
+import EditorialView from '../views/EditorialView.astro'
+import GlossaryIndexView from '../views/GlossaryIndexView.astro'
+import GlossaryTermView from '../views/GlossaryTermView.astro'
+import LandingView from '../views/LandingView.astro'
+import PageView from '../views/PageView.astro'
+
+export const getStaticPaths = (async () => {
+  const routes = await getRoutes()
+  return routes.map((route) => ({
+    params: { path: route.path.replace(/^\/|\/$/g, '') || undefined },
+    props: { route },
+  }))
+}) satisfies GetStaticPaths
+
+interface Props {
+  route: Route
+}
+const { route } = Astro.props
+const { data } = route
+const docType = data.kind === 'doc' ? data.doc._type : undefined
+---
+
+{data.kind === 'home' || data.kind === 'category' || data.kind === 'author' ? <ListView route={route} /> : null}
+{data.kind === 'glossaryIndex' && <GlossaryIndexView route={route} />}
+{(docType === 'article' || docType === 'comparison' || docType === 'review') && <EditorialView route={route} />}
+{docType === 'glossaryTerm' && <GlossaryTermView route={route} />}
+{docType === 'landingPage' && <LandingView route={route} />}
+{docType === 'page' && <PageView route={route} />}

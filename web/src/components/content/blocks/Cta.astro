@@ -1,0 +1,22 @@
+---
+import type { TypedObjectProps } from 'astro-portabletext/types'
+import { isExternal, langFromUrl, linkHref } from '../../../lib/i18n'
+import type { LinkTarget } from '../../../lib/types'
+
+type Props = TypedObjectProps
+const node = Astro.props.node as unknown as { title: string; text?: string; link?: LinkTarget }
+const href = linkHref(node.link, langFromUrl(Astro.url))
+const external = isExternal(href)
+---
+
+<aside class="cta-box">
+  <p class="cta-box__title"><strong>{node.title}</strong></p>
+  {node.text && <p>{node.text}</p>}
+  {
+    href && node.link && (
+      <a class="button" href={href} rel={external ? 'noopener' : undefined}>
+        {node.link.label}
+      </a>
+    )
+  }
+</aside>

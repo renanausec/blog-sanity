@@ -1,0 +1,45 @@
+---
+/** Tabelle als echtes <table> mit <caption>, <thead> und Zeilen-/Spaltenköpfen */
+import type { TableData } from '../../../lib/types'
+import { slugify } from '../../../lib/i18n'
+
+interface Props {
+  node?: unknown
+  table?: TableData
+}
+const data = (Astro.props.table ?? Astro.props.node) as TableData
+const rows = data?.rows?.filter((r) => r.cells?.length) ?? []
+const head = data?.headerRow !== false && rows.length > 1 ? rows[0] : undefined
+const body = head ? rows.slice(1) : rows
+const firstColHeader = !!data?.headerColumn
+const key = (Astro.props.node as { _key?: string } | undefined)?._key
+const labelId = `table-${key ?? slugify(data?.caption ?? 'vergleich')}`
+---
+
+{
+  rows.length > 0 && (
+    <div class="table-wrap" role="region" aria-labelledby={data.caption ? labelId : undefined} tabindex="0">
+      <table>
+        {data.caption && <caption id={labelId}>{data.caption}</caption>}
+        {head && (
+          <thead>
+            <tr>
+              {head.cells.map((cell) => (
+                <th scope="col">{cell}</th>
+              ))}
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {body.map((row) => (
+            <tr>
+              {row.cells.map((cell, i) =>
+                i === 0 && firstColHeader ? <th scope="row">{cell}</th> : <td>{cell}</td>,
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}

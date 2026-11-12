@@ -1,0 +1,44 @@
+---
+/**
+ * Portable Text → semantisches HTML.
+ * Eigene Blöcke (Bild, Tabelle, Hinweisbox, Vor-/Nachteile, CTA) und Links werden hier zugeordnet.
+ */
+import { PortableText } from 'astro-portabletext'
+import Figure from './blocks/Figure.astro'
+import Table from './blocks/Table.astro'
+import Callout from './blocks/Callout.astro'
+import ProsCons from './blocks/ProsCons.astro'
+import Cta from './blocks/Cta.astro'
+import Heading from './blocks/Heading.astro'
+import ExternalLink from './marks/ExternalLink.astro'
+import InternalLink from './marks/InternalLink.astro'
+import GlossaryLink from './marks/GlossaryLink.astro'
+import type { PortableTextValue } from '../../lib/types'
+
+interface Props {
+  value: PortableTextValue | undefined
+  /** false = ohne .prose-Wrapper (z. B. in Hinweisboxen) */
+  prose?: boolean
+  class?: string
+}
+
+const { value, prose = true, class: className } = Astro.props
+
+const components = {
+  type: { figure: Figure, table: Table, callout: Callout, prosCons: ProsCons, cta: Cta },
+  block: { h2: Heading, h3: Heading, h4: Heading },
+  mark: { link: ExternalLink, internalLink: InternalLink, glossaryLink: GlossaryLink },
+}
+---
+
+{
+  value?.length ? (
+    prose ? (
+      <div class:list={['prose', className]}>
+        <PortableText value={value as never} components={components} />
+      </div>
+    ) : (
+      <PortableText value={value as never} components={components} />
+    )
+  ) : null
+}

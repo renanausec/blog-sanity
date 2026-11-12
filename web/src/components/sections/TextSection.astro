@@ -1,0 +1,22 @@
+---
+import RichText from '../content/RichText.astro'
+import type { LandingSection } from '../../lib/types'
+
+interface Props {
+  section: Extract<LandingSection, { _type: 'textSection' }>
+}
+const { section } = Astro.props
+---
+
+<section class="container section">
+  {section.title && <h2>{section.title}</h2>}
+  <RichText value={section.body} />
+</section>
+
+<style>
+  .section {
+    display: grid;
+    gap: var(--space-4);
+    padding-block: var(--space-section) 0;
+  }
+</style>

@@ -1,0 +1,24 @@
+{
+  "name": "tekpixo",
+  "private": true,
+  "type": "module",
+  "description": "Blog-Vorlage: Sanity Studio + Astro (statisch) + Cloudflare Pages",
+  "workspaces": [
+    "studio",
+    "web"
+  ],
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "preview": "npm run preview -w web",
+    "studio": "npm run dev -w studio",
+    "studio:build": "npm run build -w studio",
+    "studio:deploy": "npm run deploy -w studio",
+    "schema:deploy": "npm run schema:deploy -w studio",
+    "check": "npm run check -w web && npm run typecheck -w studio",
+    "check:leaks": "npm run check:leaks -w web"
+  }
+}

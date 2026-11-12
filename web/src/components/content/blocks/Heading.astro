@@ -1,0 +1,13 @@
+---
+/** Überschrift mit Anker-ID (für Inhaltsverzeichnis und Sprunglinks) */
+import { toPlainText } from 'astro-portabletext'
+import type { BlockProps } from 'astro-portabletext/types'
+import { slugify } from '../../../lib/i18n'
+
+type Props = BlockProps
+const { node } = Astro.props
+const Tag = node.style as 'h2' | 'h3' | 'h4'
+const id = slugify(toPlainText(node))
+---
+
+<Tag id={id || undefined}><slot /></Tag>

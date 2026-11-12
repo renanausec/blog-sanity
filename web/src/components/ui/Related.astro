@@ -1,0 +1,42 @@
+---
+/** Verwandte Inhalte als Kartenraster (Karten kommen aus dem Theme) */
+import Card from '@theme/Card.astro'
+import { t } from '../../lib/i18n'
+import type { CardItem, LocaleId } from '../../lib/types'
+
+interface Props {
+  items: CardItem[] | undefined
+  lang: LocaleId
+  title?: string
+}
+const { items = [], lang, title } = Astro.props
+---
+
+{
+  items.length > 0 && (
+    <section class="related" aria-labelledby="related-title">
+      <h2 id="related-title">{title ?? t(lang).related}</h2>
+      <div class="related__grid">
+        {items.map((item) => (
+          <Card item={item} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .related {
+    margin-top: var(--space-section);
+    padding-top: var(--space-6);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+  .related h2 {
+    margin-bottom: var(--space-5);
+  }
+  .related__grid {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  }
+</style>
