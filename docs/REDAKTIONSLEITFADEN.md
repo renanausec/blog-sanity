@@ -93,6 +93,19 @@ DE- und EN-Fassung sind zwei Dokumente. Verbunden werden sie über ein Dokument 
 
 - Erst **beide Dokumente veröffentlichen**, dann das Metadaten-Dokument anlegen (Referenzen auf veröffentlichte Dokumente).
 - Ergebnis: korrektes hreflang, Sprachumschalter führt zur Übersetzung, `workTranslation`/`translationOfWork` im Schema.
+- hreflang-Tags erscheinen nur, solange die Website indexierbar ist (auf der Testdomain mit `noindex` fehlen sie bewusst; der Sprachumschalter funktioniert trotzdem).
+
+## Reihenfolge beim Anlegen per MCP (Referenzen)
+
+Referenzen dürfen nur auf **bereits veröffentlichte** Dokumente zeigen – ein Entwurf, der auf einen anderen Entwurf verweist, wird abgelehnt („references non-existent document“). Daher in dieser Reihenfolge arbeiten:
+
+1. Autor:in und Glossarbegriffe anlegen und veröffentlichen.
+2. Artikel anlegen (Verweise nur auf veröffentlichte Dokumente) und veröffentlichen.
+3. Vergleiche/Reviews anlegen, die auf diese Artikel verweisen, und veröffentlichen.
+4. Rückverweise (z. B. Artikel → Vergleich in `body` und `related`) per Patch ergänzen und erneut veröffentlichen.
+5. Zuletzt `translation.metadata` anlegen (ist `liveEdit`, also sofort veröffentlicht).
+
+Jeder Schritt löst einen Build aus. Feste, sprechende IDs verwenden (`article-<thema>-de`, `glossary-<begriff>-de`, `comparison-<thema>-de`), dann lassen sich Verweise vorab planen. Jedes Array-Element braucht einen eindeutigen `_key`.
 
 ## Portable Text – Blockformate
 

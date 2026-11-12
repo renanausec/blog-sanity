@@ -204,10 +204,10 @@ Studio / MCP → Veröffentlichen → Sanity-Webhook „Cloudflare Rebuild“
 
 Inhalte werden vorrangig über den offiziellen **Sanity-MCP-Server** angelegt.
 
-```bash
-claude mcp add --transport http sanity https://mcp.sanity.io
-# danach in Claude Code: /mcp → sanity → Authentifizieren
-```
+Der Server ist im Repository bereits eingetragen ([`.mcp.json`](.mcp.json)) – Claude Code (CLI und VS-Code-Erweiterung) erkennt ihn automatisch. Einmalig:
+
+1. Claude Code im Projektordner neu starten und den Projekt-MCP-Server `sanity` zulassen.
+2. `/mcp` → `sanity` → **Authenticate** → im Browser mit dem Sanity-Konto anmelden und das Projekt freigeben.
 
 Ausführliche Regeln je Inhaltstyp, Feldformate und JSON-Beispiele: **[docs/REDAKTIONSLEITFADEN.md](docs/REDAKTIONSLEITFADEN.md)**.
 
@@ -323,7 +323,7 @@ npm run demo -w studio && npm run build && npm run preview
 
 ### 9. MCP verbinden
 
-`claude mcp add --transport http sanity https://mcp.sanity.io`, authentifizieren und das **neue** Projekt auswählen.
+`.mcp.json` ist bereits enthalten: Claude Code im neuen Projektordner starten, `/mcp` → `sanity` → authentifizieren und das **neue** Projekt verwenden.
 
 ### 10. Rückstände prüfen
 
