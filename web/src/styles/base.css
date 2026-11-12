@@ -240,6 +240,14 @@ a.kicker:hover {
   overflow-x: auto;
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius);
+  /* Scroll-Schatten: zeigt auf schmalen Bildschirmen, dass die Tabelle seitlich weitergeht.
+     Die Abdeckungen (local) wandern mit dem Inhalt, die Schatten (scroll) bleiben am Rand. */
+  background:
+    linear-gradient(to right, var(--color-bg) 30%, transparent) left / 2.5rem 100% no-repeat local,
+    linear-gradient(to left, var(--color-bg) 30%, transparent) right / 2.5rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(22 15 26 / 0.22), transparent) left / 0.9rem 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(22 15 26 / 0.22), transparent) right / 0.9rem 100% no-repeat scroll;
+  background-color: var(--color-bg);
 }
 .table-wrap:focus-visible {
   outline-offset: 0;
@@ -395,6 +403,10 @@ tbody tr:last-child > * {
   font-family: var(--font-heading);
   font-weight: var(--weight-bold);
   font-size: var(--text-lg);
+  /* gedrehtes „+“ (geöffnet) ragt sonst über den Rand → horizontales Scrollen auf Mobilgeräten */
+  overflow-x: clip;
+  /* lange deutsche Komposita dürfen umbrechen statt das „+“ hinauszuschieben */
+  overflow-wrap: anywhere;
 }
 .faq__item summary::-webkit-details-marker {
   display: none;

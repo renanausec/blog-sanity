@@ -78,6 +78,8 @@ const { title, kicker, image } = Astro.props
   }
   .article__column {
     display: grid;
+    /* minmax(0, …) verhindert, dass breite Tabellen die Spalte (und die Seite) aufweiten */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-6);
     max-width: var(--measure);
     margin: var(--space-7) auto 0;

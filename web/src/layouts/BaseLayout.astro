@@ -93,13 +93,18 @@ const isCurrent = (href: string) => href !== docPath('home', lang) && current.st
 const manualNav: NavLink[] = (settings.mainNav?.[lang] ?? [])
   .map((l) => ({ label: l.label, href: linkHref(l, lang) ?? '' }))
   .filter((l) => l.href)
+// Nur Ziele verlinken, die als indexierbare Seite existieren – leere Kategorien
+// oder ein leeres Glossar (noindex) erscheinen erst, wenn es Inhalte gibt.
+const indexable = new Set((await getRoutes()).filter((r) => !r.noIndex).map((r) => r.path))
 const categoryNav: NavLink[] = categories
   .filter((c) => !c.noIndex && pick(c.slug, lang)?.current)
   .map((c) => ({ label: pick(c.title, lang) ?? '', href: categoryPath(c, lang) }))
+  .filter((l) => indexable.has(l.href))
+const glossaryHref = docPath('glossaryIndex', lang)
 const nav: NavLink[] = [
   ...(settings.showCategoriesInNav !== false ? categoryNav : []),
   ...manualNav,
-  { label: s.glossary, href: docPath('glossaryIndex', lang) },
+  ...(indexable.has(glossaryHref) ? [{ label: s.glossary, href: glossaryHref }] : []),
 ].map((l) => ({ ...l, current: isCurrent(l.href) }))
 
 const languages: LanguageLink[] = siteConfig.locales.map((l) => {
@@ -126,8 +131,7 @@ const social: NavLink[] = Object.entries(siteConfig.social)
   .filter(([, url]) => url)
   .map(([name, url]) => ({ label: name.charAt(0).toUpperCase() + name.slice(1), href: url }))
 
-// Footer-Spalten: nur auf existierende, indexierbare Seiten verlinken
-const indexable = new Set((await getRoutes()).filter((r) => !r.noIndex).map((r) => r.path))
+// Footer-Spalten: nur auf existierende, indexierbare Seiten verlinken (Set siehe Navigation)
 const hubLink = (label: string, href: string): NavLink | undefined => (indexable.has(href) ? { label, href } : undefined)
 const footerColumns: FooterColumn[] = [
   {

@@ -73,8 +73,20 @@ const caption = image?.caption || image?.credit
   .article__image {
     margin-block: var(--space-6) 0;
   }
+  /* Desktop: flacheres Titelbild, damit Kernaussagen und Inhaltsverzeichnis
+     früher im sichtbaren Bereich liegen. Motiv bleibt mittig (Hotspot-Crop 16:9). */
+  @media (min-width: 64rem) {
+    .article__image :global(img) {
+      aspect-ratio: 21 / 9;
+      object-fit: cover;
+      width: 100%;
+      height: auto;
+    }
+  }
   .article__columns {
     display: grid;
+    /* minmax(0, …) verhindert, dass breite Tabellen die Spalte (und die Seite) aufweiten */
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-7);
     margin-top: var(--space-7);
   }
@@ -96,6 +108,7 @@ const caption = image?.caption || image?.credit
   .article__main {
     min-width: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-7);
     align-content: start;
   }
