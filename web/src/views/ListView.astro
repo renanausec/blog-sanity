@@ -43,12 +43,12 @@ if (data.kind === 'home') {
   description = pick(settings.homeIntro, lang) ?? siteConfig.description[lang]
 } else if (data.kind === 'category') {
   heading = pick(data.category.title, lang) ?? ''
-  title = `${heading}${pageSuffix}`
-  description = pick(data.category.description, lang)
+  title = `${s.seo.category(heading)}${pageSuffix}`
+  description = pick(data.category.description, lang) ?? s.seo.categoryDescription(heading)
   crumbs = [home, { name: heading, path: categoryPath(data.category, lang) }]
 } else if (data.kind === 'hub') {
   heading = data.hub === 'comparison' ? s.comparisons : s.reviews
-  title = `${heading}${pageSuffix}`
+  title = `${data.hub === 'comparison' ? s.seo.comparisons : s.seo.reviews}${pageSuffix}`
   description = data.hub === 'comparison' ? s.comparisonsIntro : s.reviewsIntro
   crumbs = [home, { name: heading, path: list.basePath }]
 } else {

@@ -140,6 +140,7 @@ export async function llmsTxt(): Promise<Response> {
   const content = await loadContent()
   const siteName = content.settings.siteName || siteConfig.name
   const lines: string[] = [`# ${siteName}`, '', `> ${siteConfig.description[siteConfig.locales[0].id]}`, '']
+  const indexablePaths = new Set((await getRoutes()).filter((r) => !r.noIndex).map((r) => r.path))
 
   for (const lang of localeIds) {
     const s = t(lang)
@@ -150,7 +151,18 @@ export async function llmsTxt(): Promise<Response> {
       [lang === 'de' ? 'Tests' : 'Reviews', indexable(content.reviews)],
       [s.glossary, indexable(content.glossary)],
     ]
-    lines.push(`## ${localeInfo(lang).title}`, '', `- [${s.home}](${absoluteUrl(docPath('home', lang))})`, `- [${s.glossary}](${absoluteUrl(docPath('glossaryIndex', lang))})`, '')
+    // Übersichtsseiten nur, wenn sie indexierbar sind (leeres Glossar o. Ä. ist noindex)
+    const hubs: [string, string][] = [
+      [s.home, docPath('home', lang)],
+      [s.topics, docPath('categoryIndex', lang)],
+      [s.comparisons, docPath('comparisonIndex', lang)],
+      [s.reviews, docPath('reviewIndex', lang)],
+      [s.glossary, docPath('glossaryIndex', lang)],
+      [s.authors, docPath('authorIndex', lang)],
+    ]
+    lines.push(`## ${localeInfo(lang).title}`, '')
+    for (const [label, path] of hubs) if (indexablePaths.has(path)) lines.push(`- [${label}](${absoluteUrl(path)})`)
+    lines.push('')
     for (const [title, docs] of sections) {
       if (!docs.length) continue
       lines.push(`### ${title}`, '')

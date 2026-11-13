@@ -123,7 +123,7 @@ Studio-Navigation: **Inhalte** (je Typ und Sprache, plus Kategorien) · **Glossa
 - **Validierung:** Pflichtfelder, Längen, Slug eindeutig je Sprache und URL-Raum, reservierte Slugs, Datumslogik.
 - **FAQ** ist in allen Typen optional, erscheint als Akkordeon (`<details>`) und als `FAQPage`-Schema.
 
-Schema-Änderungen danach immer mit `npm run schema:deploy` veröffentlichen (wichtig für MCP) und das Studio mit `npm run studio:deploy` aktualisieren.
+Schema-Änderungen danach immer mit `npm run studio:deploy` veröffentlichen – das lädt Studio **und** Schema hoch, das der MCP liest. Kein separates `sanity schema deploy` verwenden: es legt ein zweites, konkurrierendes Schema an (`_.schemas.default`), und der MCP überspringt dann die Validierung.
 
 ## URLs & Mehrsprachigkeit
 
@@ -202,6 +202,12 @@ Studio / MCP → Veröffentlichen → Sanity-Webhook „Cloudflare Rebuild“
 
 ## Inhalte per MCP
 
+**Abkürzungen in Claude Code** (Skills in `.claude/skills/`): einfach im Chat sagen –
+
+- „novo artigo sobre …“ / „novo comparativo …“ → `novo-conteudo` (anlegen, Bild, DE+EN, veröffentlichen, live prüfen)
+- „continue otimizando“ → `auditoria-seo` (Audit, Lighthouse, Korrekturen)
+- „pode fazer o push“ → `publicar-site` (verify, Commit, Push, Live-Check)
+
 Inhalte werden vorrangig über den offiziellen **Sanity-MCP-Server** angelegt.
 
 Der Server ist im Repository bereits eingetragen ([`.mcp.json`](.mcp.json)) – Claude Code (CLI und VS-Code-Erweiterung) erkennt ihn automatisch. Einmalig:
@@ -213,7 +219,7 @@ Ausführliche Regeln je Inhaltstyp, Feldformate und JSON-Beispiele: **[docs/REDA
 
 Kurzfassung für das Anlegen per MCP:
 
-- Schema vorher mit `npm run schema:deploy` veröffentlichen.
+- Schema vorher mit `npm run studio:deploy` veröffentlichen.
 - Übersetzte Typen brauchen das Feld `language` (`de`/`en`).
 - DE- und EN-Fassung werden über ein Dokument `translation.metadata` verbunden (siehe `studio/scripts/demo-content.ts`, Funktion `translation`).
 - Veröffentlichen löst automatisch den Rebuild aus.
@@ -235,8 +241,11 @@ Zusätzlich: `npm run check` (TypeScript für Website und Studio). Lighthouse (m
 | Befehl | Zweck |
 |---|---|
 | `npm run dev` / `build` / `preview` | Website |
-| `npm run studio` / `studio:deploy` / `schema:deploy` | Studio |
+| `npm run studio` / `studio:deploy` | Studio (Deploy lädt auch das Schema für den MCP hoch) |
 | `npm run check` | Typprüfung |
+| `npm run verify` | Typprüfung + Build + SEO-Audit in einem Schritt (vor jedem Push) |
+| `npm run audit` | SEO/GEO-Check des letzten Builds (Title, Description, H1, Links, JSON-LD) |
+| `npm run rebuild` | Cloudflare-Build manuell anstoßen; mit Pfad (`-- /zero-trust/`) wartet es, bis die Seite live ist |
 | `npm run seed -w studio` | Kategorien + Einstellungen anlegen (idempotent) |
 | `npm run demo -w studio` / `demo:remove -w studio` | Demo-Inhalte (IDs `demo-*`) anlegen / entfernen |
 | `npm run webhook -w studio` | Sanity-Webhook → Cloudflare anlegen bzw. erneuern |
@@ -284,7 +293,6 @@ In `studio/scripts/seed.ts` die Liste `categories` anpassen, dann:
 
 ```bash
 npm run seed -w studio
-npm run schema:deploy
 npx sanity cors add http://localhost:3333 --credentials   # im Ordner studio/
 ```
 

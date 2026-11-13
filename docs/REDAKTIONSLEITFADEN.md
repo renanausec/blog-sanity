@@ -1,7 +1,7 @@
 # Redaktionsleitfaden – Inhalte für SEO & GEO anlegen
 
 Dieser Leitfaden gilt für Inhalte, die im Studio **oder per MCP** angelegt werden.
-Die Feldbeschreibungen im Studio (und im per `npm run schema:deploy` veröffentlichten Schema, das der MCP liest) enthalten dieselben Regeln in Kurzform.
+Die Feldbeschreibungen im Studio (und im per `npm run studio:deploy` veröffentlichten Schema, das der MCP liest) enthalten dieselben Regeln in Kurzform.
 
 ## Grundregeln (alle Typen)
 

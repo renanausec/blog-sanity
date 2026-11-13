@@ -43,6 +43,11 @@ export function sourceUrl(image: SanityImage, width: number, aspect?: number): {
 
 /** Ist das Bild ein PNG/SVG (Transparenz)? Dann PNG als Fallback statt JPG */
 export function isTransparent(image: SanityImage): boolean {
+  // Sanity kennt die echte Transparenz: ein deckendes PNG (z. B. KI-Bild) wird als JPG
+  // ausgeliefert statt als mehrere hundert KB großes PNG.
+  const meta = image.asset?.metadata
+  if (meta?.isOpaque === true) return false
+  if (meta?.hasAlpha === false) return false
   const id = image.asset?._id ?? image.asset?._ref ?? ''
   return /-(png|svg|webp|gif)$/.test(id)
 }

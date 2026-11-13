@@ -6,7 +6,7 @@ import { localeIds } from '../../../site.config'
  */
 
 /** Bild inkl. Asset-Metadaten (Abmessungen) */
-const image = `{..., asset->{_id, url, metadata{dimensions}}}`
+const image = `{..., asset->{_id, url, metadata{dimensions, hasAlpha, isOpaque}}}`
 
 /** Aufgelöstes Linkziel */
 const linkRef = `{_type, language, "slug": select(_type == "category" => slug, slug.current), title, shortDefinition}`

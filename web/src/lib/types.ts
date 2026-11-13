@@ -12,7 +12,12 @@ export interface SanityImage {
     _ref?: string
     _id?: string
     url?: string
-    metadata?: { dimensions?: { width: number; height: number; aspectRatio: number }; lqip?: string }
+    metadata?: {
+      dimensions?: { width: number; height: number; aspectRatio: number }
+      lqip?: string
+      hasAlpha?: boolean
+      isOpaque?: boolean
+    }
   }
   crop?: { top: number; bottom: number; left: number; right: number }
   hotspot?: { x: number; y: number; height: number; width: number }

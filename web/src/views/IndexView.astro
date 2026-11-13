@@ -23,6 +23,10 @@ const editorial = editorialFor(content, lang)
 const isAuthors = data.kind === 'authorIndex'
 const heading = isAuthors ? s.authors : s.topics
 const intro = isAuthors ? s.authorsIntro : s.topicsIntro
+const metaTitle = isAuthors ? s.seo.authors : s.seo.topics
+const metaDescription = isAuthors
+  ? s.authorsIntro
+  : s.seo.topicsDescription(data.categories.map((c) => pick(c.title, lang)).filter(Boolean).join(', '))
 const policyHref = refHref(content.settings.legalPages?.[lang]?.editorialPolicy, lang)
 
 const entries = isAuthors
@@ -37,7 +41,7 @@ const entries = isAuthors
   : data.categories.map((c) => ({
       name: pick(c.title, lang) ?? '',
       path: categoryPath(c, lang),
-      text: pick(c.description, lang),
+      text: pick(c.description, lang) ?? s.seo.categoryDescription(pick(c.title, lang) ?? ''),
       meta: undefined,
       image: undefined,
       count: editorial.filter((d) => d.category?._id === c._id).length,
@@ -52,8 +56,8 @@ const jsonLd = [
   webPageNode({
     path: route.path,
     lang,
-    title: heading,
-    description: intro,
+    title: metaTitle,
+    description: metaDescription,
     type: isAuthors ? 'AboutPage' : 'CollectionPage',
     hasBreadcrumb: true,
     mainEntity: { '@id': `${absoluteUrl(route.path)}#itemlist` },
@@ -64,7 +68,7 @@ const jsonLd = [
 ]
 ---
 
-<BaseLayout lang={lang} title={heading} description={intro} route={route} jsonLd={jsonLd}>
+<BaseLayout lang={lang} title={metaTitle} description={metaDescription} route={route} jsonLd={jsonLd}>
   <div class="container index-page">
     <Breadcrumbs crumbs={crumbs} lang={lang} />
     <header class="index-page__header">

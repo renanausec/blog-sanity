@@ -37,6 +37,25 @@ export function plain(value: PortableTextValue | undefined): string {
   return value?.length ? toPlainText(value as never).trim() : ''
 }
 
+/** Felder ohne Lesetext (Links, Technik, Bildangaben) */
+const NON_TEXT = new Set(['url', 'href', 'slug', 'style', 'listItem', 'marks', 'asset', 'crop', 'hotspot', 'language', 'level', 'tone', 'variant', 'alt', 'image', 'review', 'reference'])
+
+/**
+ * Gesamter sichtbarer Text eines Werts – auch aus eigenen Blöcken (Tabelle, Hinweisbox,
+ * Vor-/Nachteile), Vergleichseinträgen und FAQ. Grundlage für Lesezeit und wordCount.
+ */
+export function visibleText(value: unknown): string {
+  const out: string[] = []
+  const walk = (v: unknown, key?: string) => {
+    if (key && (key.startsWith('_') || NON_TEXT.has(key))) return
+    if (typeof v === 'string') out.push(v)
+    else if (Array.isArray(v)) v.forEach((x) => walk(x))
+    else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, k)
+  }
+  walk(value)
+  return out.join(' ').replace(/\s+/g, ' ').trim()
+}
+
 /** Begriffsschlüssel "lang:slug" → DefinedTerm-Knoten (für mentions) */
 export function mentionNodes(keys: string[] | undefined, glossary: GlossaryTerm[]): Node[] | undefined {
   const nodes = (keys ?? [])

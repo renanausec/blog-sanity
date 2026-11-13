@@ -46,7 +46,14 @@ const locale = localeInfo(lang)
 // ── Titel, Beschreibung, Robots ─────────────────────────────
 const baseTitle = seo?.metaTitle || title
 const fullTitle = isHome && !seo?.metaTitle ? baseTitle : `${baseTitle} | ${siteName}`
-const metaDescription = (seo?.metaDescription || description || siteConfig.description[lang]).trim()
+// Automatische Beschreibungen (z. B. Kurzdefinition) auf ~160 Zeichen an Wortgrenze kürzen,
+// damit Google sie nicht mitten im Wort abschneidet. Eigene Meta-Description bleibt unverändert.
+const clamp = (text: string, max = 160) => {
+  if (text.length <= max) return text
+  const cut = text.slice(0, max - 1)
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:–-]+$/, '')}…`
+}
+const metaDescription = seo?.metaDescription?.trim() || clamp((description || siteConfig.description[lang]).trim())
 const isPreview = !isProductionBuild
 const noIndex = Astro.props.noIndex || seo?.noIndex || route?.noIndex || isPreview
 const noFollow = seo?.noFollow || isPreview

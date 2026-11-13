@@ -50,7 +50,7 @@ const related = (term.relatedTerms ?? [])
   .filter((r) => r.href)
 ---
 
-<BaseLayout lang={lang} title={term.title} description={term.shortDefinition} route={route} seo={term.seo} jsonLd={jsonLd}>
+<BaseLayout lang={lang} title={s.seo.term(term.title)} description={term.shortDefinition} route={route} seo={term.seo} jsonLd={jsonLd}>
   <ArticleLayout lang={lang} title={term.title} kicker={{ label: s.glossary, href: indexPath }}>
     <Breadcrumbs slot="breadcrumbs" crumbs={crumbs} lang={lang} />
     <ShortAnswer slot="lead" text={term.shortDefinition} lang={lang} label={definitionLabel} />

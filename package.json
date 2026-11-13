@@ -17,8 +17,10 @@
     "studio": "npm run dev -w studio",
     "studio:build": "npm run build -w studio",
     "studio:deploy": "npm run deploy -w studio",
-    "schema:deploy": "npm run schema:deploy -w studio",
     "check": "npm run check -w web && npm run typecheck -w studio",
-    "check:leaks": "npm run check:leaks -w web"
+    "check:leaks": "npm run check:leaks -w web",
+    "verify": "npm run check && npm run build && npm run audit",
+    "audit": "node web/scripts/audit-seo.mjs",
+    "rebuild": "node --env-file=.env scripts/rebuild.mjs"
   }
 }
